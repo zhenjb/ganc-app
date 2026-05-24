@@ -1,0 +1,122 @@
+// =============================================================================
+// FE-01 App Shell — shared SCSS tokens
+// -----------------------------------------------------------------------------
+// This partial centralizes color, spacing, and layout tokens shared across
+// `app/components/*` and any other SCSS Module that imports it.
+//
+// Two parallel surfaces are exposed:
+//   1. SCSS variables ($name)        — compile-time, used inside mixins / math.
+//   2. CSS custom properties (--name)— emitted via the `css-tokens` mixin onto
+//                                      :root so component modules can reference
+//                                      them with `var(--name, $fallback)`.
+//
+// Consumers should import via:
+//
+//     @use "@/app/lib/sass/variables" as v;
+//     // ...
+//     color: var(--si-idle, #{v.$si-idle});
+//
+// To emit the CSS custom properties globally exactly once, include the
+// `css-tokens` mixin from a global stylesheet (e.g. `app/globals.css`) — never
+// from a `.module.scss`, otherwise tokens are duplicated per CSS Module.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Breakpoints (mirror `app/constants/breakpoints.ts`)
+// -----------------------------------------------------------------------------
+
+$breakpoint-tablet-min: 768px;   // Req 7.2
+$breakpoint-desktop-min: 1024px; // Req 7.1
+
+// -----------------------------------------------------------------------------
+// StatusIndicator colors (Req 6 + design.md StatusIndicator section)
+// -----------------------------------------------------------------------------
+
+$si-idle:   #d1d5db; // gray-300
+$si-active: #2563eb; // blue-600
+$si-done:   #16a34a; // green-600
+$si-error:  #dc2626; // red-600
+
+// -----------------------------------------------------------------------------
+// AnnouncementBanner variant colors (Req 8 + Req 9, Req 10)
+// info    → neutral system messages
+// warning → mock-mode banner
+// error   → NormalizedError ("Internal Server Error")
+// -----------------------------------------------------------------------------
+
+$banner-info-bg:    #dbeafe; // blue-100
+$banner-info-fg:    #1e3a8a; // blue-900
+$banner-info-edge:  #93c5fd; // blue-300
+
+$banner-warning-bg:   #fef3c7; // amber-100
+$banner-warning-fg:   #78350f; // amber-900
+$banner-warning-edge: #fcd34d; // amber-300
+
+$banner-error-bg:   #fee2e2; // red-100
+$banner-error-fg:   #7f1d1d; // red-900
+$banner-error-edge: #fca5a5; // red-300
+
+// -----------------------------------------------------------------------------
+// Focus ring (used by `@mixin focus-ring` in `_mixins.scss`)
+// -----------------------------------------------------------------------------
+
+$focus-ring-color:   #2563eb; // blue-600
+$focus-ring-width:   2px;
+$focus-ring-offset:  2px;
+
+// -----------------------------------------------------------------------------
+// Spacing scale (4px base, mirrors Tailwind's spacing tokens for consistency)
+// -----------------------------------------------------------------------------
+
+$space-0: 0;
+$space-1: 0.25rem; //  4px
+$space-2: 0.5rem;  //  8px
+$space-3: 0.75rem; // 12px
+$space-4: 1rem;    // 16px
+$space-5: 1.25rem; // 20px
+$space-6: 1.5rem;  // 24px
+$space-8: 2rem;    // 32px
+
+// -----------------------------------------------------------------------------
+// Layout sizing (Header / overlay)
+// -----------------------------------------------------------------------------
+
+$header-height-mobile:  3.5rem; // 56px
+$header-height-desktop: 4rem;   // 64px
+
+// -----------------------------------------------------------------------------
+// Emit CSS custom properties on :root.
+// Include this mixin exactly once from a global stylesheet.
+// -----------------------------------------------------------------------------
+
+@mixin css-tokens {
+  :root {
+    // StatusIndicator
+    --si-idle:   #{$si-idle};
+    --si-active: #{$si-active};
+    --si-done:   #{$si-done};
+    --si-error:  #{$si-error};
+
+    // AnnouncementBanner
+    --banner-info-bg:    #{$banner-info-bg};
+    --banner-info-fg:    #{$banner-info-fg};
+    --banner-info-edge:  #{$banner-info-edge};
+
+    --banner-warning-bg:   #{$banner-warning-bg};
+    --banner-warning-fg:   #{$banner-warning-fg};
+    --banner-warning-edge: #{$banner-warning-edge};
+
+    --banner-error-bg:   #{$banner-error-bg};
+    --banner-error-fg:   #{$banner-error-fg};
+    --banner-error-edge: #{$banner-error-edge};
+
+    // Focus ring
+    --focus-ring-color:  #{$focus-ring-color};
+    --focus-ring-width:  #{$focus-ring-width};
+    --focus-ring-offset: #{$focus-ring-offset};
+
+    // Layout
+    --header-height-mobile:  #{$header-height-mobile};
+    --header-height-desktop: #{$header-height-desktop};
+  }
+}

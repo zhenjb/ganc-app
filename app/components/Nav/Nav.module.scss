@@ -1,0 +1,413 @@
+// =============================================================================
+// FE-01 App Shell — Nav system styles
+// -----------------------------------------------------------------------------
+// Single source of stateful styles for `Nav`, `NavItem`, `NavDropdown`, and
+// `MobileNavOverlay`. Tailwind utilities own layout / spacing / responsive
+// switching at the call site; this module owns the bits that are awkward as
+// long utility class strings — active states, the disabled `failure-demo`
+// placeholder, and the tablet `sr-only` label rule (Req 7.2).
+//
+// Naming convention:
+//   .item            — base anchor / Link wrapper for one tab (icon + label + indicator)
+//   .iconWrap        — flex slot keeping the icon centered
+//   .label           — text label; visually hidden on tablet, visible on desktop
+//   .labelMobile     — text label; always visible (used inside mobile overlay)
+//   .active          — applied on `.item` when the tab matches the current pathname (Req 4.10)
+//   .disabled        — applied on `.item` for the `failure-demo` placeholder (OQ-1)
+//   .indicator       — passthrough class given to `StatusIndicator` for layout
+//
+// Color tokens reuse the shared CSS custom properties / SCSS variables in
+// `app/lib/sass/_variables.scss`. The mixin imports follow the project-wide
+// convention `@use "@/app/lib/sass/mixins" as m;`.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Base item — used for every leaf, dropdown trigger, and overlay row.
+// -----------------------------------------------------------------------------
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-3;
+  border-radius: 0.375rem;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Icon slot.
+// -----------------------------------------------------------------------------
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  line-height: 0;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Label — default behavior for the inline (Header) Nav.
+//
+// Per Req 7.2, the tablet breakpoint shows icons only with the label hidden
+// to assistive tech only; per Req 7.1 the desktop breakpoint shows the label
+// alongside the icon. The mobile breakpoint never reaches this rule because
+// the inline Nav is replaced by `MobileNavOverlay` below 768px (Req 7.4).
+// -----------------------------------------------------------------------------
+
+.label {
+  display: inline-block;
+
+  // Tablet only: visually hide the label, keep it accessible to screen readers.
+  @media (min-width: #{v.$breakpoint-tablet-min}) and (max-width: #{v.$breakpoint-desktop-min - 1px}) {
+    @include m.sr-only;
+  }
+}
+
+// Variant used by `MobileNavOverlay` (and by `NavItem` when `isMobile` is set):
+// the label is always visible regardless of viewport width.
+.labelMobile {
+  display: inline-block;
+}
+
+// -----------------------------------------------------------------------------
+// Status indicator wrapper — pushes the indicator to the trailing edge of the
+// item. The indicator itself is styled by `StatusIndicator.module.scss`.
+// -----------------------------------------------------------------------------
+
+.indicator {
+  margin-left: auto;
+}
+
+// -----------------------------------------------------------------------------
+// Active state — applied when the item matches the current pathname (Req 4.10).
+// -----------------------------------------------------------------------------
+
+.active {
+  background-color: rgba(37, 99, 235, 0.08);
+  color: var(--si-active, #{v.$si-active});
+  font-weight: 600;
+
+  &:hover {
+    background-color: rgba(37, 99, 235, 0.12);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Disabled placeholder — used by the `failure-demo` tab (OQ-1).
+//
+// Visual cues:
+//   - Reduced opacity to flag the placeholder state.
+//   - `cursor: not-allowed` and `pointer-events: none` so the `href="#"` cannot
+//     accidentally scroll to top, even though the component also calls
+//     `e.preventDefault()` on click.
+// -----------------------------------------------------------------------------
+
+.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// -----------------------------------------------------------------------------
+// Dropdown (NavDropdown) — desktop / tablet popover
+// -----------------------------------------------------------------------------
+// `.dropdown`         — wrapping <div> on desktop/tablet so click-outside has
+//                       a positioning anchor and the popover can be absolutely
+//                       placed beneath the trigger button.
+// `.dropdownTrigger`  — class applied alongside `.item` on the trigger button.
+//                       The trigger is a <button>, not a Link, because clicking
+//                       it toggles the popover (Req 4.6) instead of navigating.
+// `.dropdownChevron`  — small flex slot for the chevron icon, with a transition
+//                       on `transform` so rotation animates when the popover
+//                       opens or closes.
+// `.dropdownChevronOpen` — applied when the dropdown is open; rotates the
+//                       chevron 180° to point upward.
+// `.dropdownPopover`  — the absolutely-positioned <ul> beneath the trigger.
+//                       Surface, border, radius, and shadow follow the
+//                       AppShell card style.
+// -----------------------------------------------------------------------------
+
+.dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.dropdownTrigger {
+  // Reuses `.item` for layout and color rules; the only addition here is
+  // resetting the user-agent <button> chrome.
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dropdownChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  line-height: 0;
+  transition: transform 150ms ease;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.dropdownChevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdownPopover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: v.$space-1 0 0 0;
+  padding: v.$space-1;
+  min-width: 12rem;
+  list-style: none;
+  background-color: var(--surface, #ffffff);
+  color: var(--foreground, #171717);
+  border: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  border-radius: 0.5rem;
+  box-shadow: var(--surface-shadow, 0 8px 24px rgba(0, 0, 0, 0.08));
+  z-index: 50;
+
+  // Each <li role="none"> contains a NavItem; stretch the NavItem to fill the
+  // popover width so the trailing-edge indicator aligns with the right edge.
+  > li > a,
+  > li > button {
+    display: flex;
+    width: 100%;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Dropdown — mobile flat group
+// -----------------------------------------------------------------------------
+// Per design.md, dropdowns are NOT collapsible on mobile; the overlay shows a
+// flat list grouping with the parent's label rendered as a section heading
+// and the children indented underneath. No popover, no toggle.
+// -----------------------------------------------------------------------------
+
+.dropdownMobileGroup {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+.dropdownMobileHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground, rgba(0, 0, 0, 0.6));
+}
+
+.dropdownMobileList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 v.$space-4; // indent child rows beneath the heading
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+// -----------------------------------------------------------------------------
+// MobileNavOverlay (Req 7.4, 7.5, 7.6)
+// -----------------------------------------------------------------------------
+// Full-screen, full-width vertical overlay shown when the user activates the
+// hamburger button at Breakpoint_Mobile. The overlay sits above the sticky
+// header (z-index 60) and uses the global `--background`/`--foreground`
+// custom properties so theme switching works without overrides here.
+//
+// Layout: fixed full-viewport flex column with a top bar (close button) and
+// a scrollable body. Children inside dropdown groups render as a flat list
+// indented under a section heading (no collapse on mobile per design.md).
+// -----------------------------------------------------------------------------
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--background, #ffffff);
+  color: var(--foreground, #171717);
+  padding: 0;
+}
+
+.overlayTop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: v.$space-4;
+}
+
+.overlayBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 v.$space-4 v.$space-4;
+}
+
+// Top-level list inside the overlay body. Vertical stack of leaves and groups.
+.mobileList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+
+  // Each direct anchor child should fill the row width inside the overlay.
+  > li > .item,
+  > li > .item.disabled {
+    display: flex;
+    width: 100%;
+  }
+}
+
+.mobileGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileSection {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground, rgba(0, 0, 0, 0.6));
+  padding: v.$space-3 0 v.$space-1;
+}
+
+// Indented sub-list of children under a parent section heading.
+.mobileChildren {
+  list-style: none;
+  margin: 0;
+  padding-left: v.$space-4;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+
+  > li > .item,
+  > li > .item.disabled {
+    display: flex;
+    width: 100%;
+  }
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: inherit;
+  border-radius: 0.375rem;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Nav root — the wrapping <nav>, the inline desktop/tablet <ul>, and the
+// mobile hamburger button.
+// -----------------------------------------------------------------------------
+// `.navRoot`   — wraps every render branch of `Nav` (mobile hamburger or
+//                desktop/tablet inline list). Uses inline-flex so it can sit
+//                inside the Header's center region without growing past its
+//                content.
+// `.navList`   — the inline `<ul role="menubar">` rendered at tablet and
+//                desktop breakpoints (Req 7.1, 7.2, 7.3). One `<li>` per
+//                top-level NavItem; each `<li>` hosts a `NavItem` or a
+//                `NavDropdown`. The list-style reset is required because we
+//                render real `<ul>`/`<li>` for accessibility.
+// `.hamburger` — the mobile-only trigger button rendered when the inline
+//                Nav is replaced (Req 7.4). Square 2.5rem touch target,
+//                transparent chrome, focus-ring via `m.focus-ring`.
+// -----------------------------------------------------------------------------
+
+.navRoot {
+  display: inline-flex;
+  align-items: center;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+}
+
+.hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 0.375rem;
+  line-height: 0;
+
+  > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}

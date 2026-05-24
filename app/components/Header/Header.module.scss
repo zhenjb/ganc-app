@@ -1,0 +1,195 @@
+// =============================================================================
+// FE-01 App Shell — Header styles
+// -----------------------------------------------------------------------------
+// Stateful styles for the Header chrome. Tailwind utilities own the sticky
+// three-region layout at the call site (`sticky top-0`, flex regions, gaps,
+// borders, responsive switching); this module owns the bits that are awkward
+// as utility class strings — the badge colors per `mode`, the skeleton
+// shimmer, the theme toggle's square touch target, and the focus ring.
+//
+// Naming convention (mirrors `Nav.module.scss`):
+//
+//   .brandLink     — `<Link href="/overview">` wrapping the logo + product name
+//   .brandText     — typography for the literal `"ZKDEX MVP"`
+//   .brandLogo     — fixed-size flex slot for the inline logo SVG
+//
+//   .badge         — base badge: inline-flex, rounded, bordered chip
+//   .badgeMock     — amber palette for `mode === "mock"` (Req 5.1)
+//   .badgeReal     — green palette for `mode === "real"` (Req 5.2)
+//   .badgeLabel    — smaller, less-emphasized text (e.g. "State root")
+//   .badgeValue    — the main badge value (e.g. truncated state root)
+//
+//   .skeletonBadge — shimmering placeholder rendered while
+//                    `loading && !state` (Req 5.5, 11.1)
+//
+//   .themeToggle   — square 2.5rem button matching the hamburger style
+//   .themeIcon     — fixed icon slot inside the theme toggle button
+//   .themeBadge    — sr-only text indicating the current `theme` mode
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Brand (left region)
+// -----------------------------------------------------------------------------
+
+.brandLink {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  color: inherit;
+  text-decoration: none;
+  padding: v.$space-1 v.$space-2;
+  border-radius: 0.375rem;
+  line-height: 1.25rem;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.brandLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  line-height: 0;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.brandText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+// -----------------------------------------------------------------------------
+// Badge — base + variants
+// -----------------------------------------------------------------------------
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: 0.125rem v.$space-2;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(0, 0, 0, 0.04);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.badgeMock {
+  background-color: var(--banner-warning-bg, #{v.$banner-warning-bg});
+  color: var(--banner-warning-fg, #{v.$banner-warning-fg});
+  border-color: var(--banner-warning-edge, #{v.$banner-warning-edge});
+}
+
+.badgeReal {
+  background-color: rgba(22, 163, 74, 0.12);
+  color: #14532d; // green-900
+  border-color: rgba(22, 163, 74, 0.4);
+}
+
+.badgeLabel {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.badgeValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+// -----------------------------------------------------------------------------
+// Skeleton placeholder — used while `loading && !state`
+// -----------------------------------------------------------------------------
+
+@keyframes header-skeleton-shimmer {
+  0% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0.55;
+  }
+}
+
+.skeletonBadge {
+  display: inline-block;
+  min-width: 4rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+  background-color: rgba(0, 0, 0, 0.08);
+  animation: header-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+// -----------------------------------------------------------------------------
+// Theme toggle button (right region)
+// -----------------------------------------------------------------------------
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 0.375rem;
+  line-height: 0;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.themeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Visually hidden text indicating the current theme mode — assistive tech
+// announces only the button's aria-label per design.md, so this stays
+// `sr-only` while still surfacing the active mode to screen readers that
+// inspect the button's accessible description.
+.themeBadge {
+  @include m.sr-only;
+}

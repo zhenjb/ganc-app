@@ -1,0 +1,93 @@
+// =============================================================================
+// AnnouncementBanner — variant-specific styling.
+// -----------------------------------------------------------------------------
+// Layout: flex row, full-width, vertically centered with consistent gaps and
+// padding. Color tokens come from the shared SCSS variables / CSS custom
+// properties defined in `app/lib/sass/_variables.scss`.
+//
+// Variant identity is exposed both via the rendered `data-variant` attribute
+// and the `banner--<variant>` class assigned by the component.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  width: 100%;
+  padding: v.$space-2 v.$space-4;
+  border-bottom: 1px solid transparent;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+
+.message {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.dismissButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 0.25rem;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Variants — background, foreground, edge color from shared tokens.
+// `var(--token, $fallback)` keeps the component working whether or not the
+// global `css-tokens` block has been emitted yet.
+// -----------------------------------------------------------------------------
+
+.banner--info {
+  background: var(--banner-info-bg, #{v.$banner-info-bg});
+  color: var(--banner-info-fg, #{v.$banner-info-fg});
+  border-bottom-color: var(--banner-info-edge, #{v.$banner-info-edge});
+}
+
+.banner--warning {
+  background: var(--banner-warning-bg, #{v.$banner-warning-bg});
+  color: var(--banner-warning-fg, #{v.$banner-warning-fg});
+  border-bottom-color: var(--banner-warning-edge, #{v.$banner-warning-edge});
+}
+
+.banner--error {
+  background: var(--banner-error-bg, #{v.$banner-error-bg});
+  color: var(--banner-error-fg, #{v.$banner-error-fg});
+  border-bottom-color: var(--banner-error-edge, #{v.$banner-error-edge});
+}

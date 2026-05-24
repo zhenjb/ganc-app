@@ -1,0 +1,102 @@
+// =============================================================================
+// FE-01 App Shell — shared SCSS mixins
+// -----------------------------------------------------------------------------
+// Consumers import via:
+//
+//     @use "@/app/lib/sass/mixins" as m;
+//     // ...
+//     &:focus-visible { @include m.focus-ring; }
+//     .label          { @include m.sr-only; }
+//     @include m.tablet-and-up { /* ... */ }
+//     @include m.desktop-and-up { /* ... */ }
+//
+// Breakpoint values mirror `app/constants/breakpoints.ts`
+// (`BREAKPOINT_TABLET_MIN = 768`, `BREAKPOINT_DESKTOP_MIN = 1024`) and the
+// `$breakpoint-*` SCSS variables in `_variables.scss`.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+
+// -----------------------------------------------------------------------------
+// focus-ring
+// -----------------------------------------------------------------------------
+// Applies a visible focus ring on interactive elements. Prefer pairing with
+// `:focus-visible` so mouse users do not see the ring on click.
+//
+// Usage:
+//   .button:focus-visible { @include focus-ring; }
+//
+// The mixin reads from CSS custom properties when available and falls back to
+// the SCSS-time tokens so it stays correct even if `css-tokens` has not been
+// emitted on :root yet.
+// -----------------------------------------------------------------------------
+
+@mixin focus-ring {
+  outline: var(--focus-ring-width, #{v.$focus-ring-width}) solid
+           var(--focus-ring-color, #{v.$focus-ring-color});
+  outline-offset: var(--focus-ring-offset, #{v.$focus-ring-offset});
+  // Drop any browser-default outline that the explicit one above replaces.
+  // We keep `outline-style: solid` from the line above; this only suppresses
+  // the legacy non-visible default.
+  box-shadow: 0 0 0 0 transparent;
+}
+
+// -----------------------------------------------------------------------------
+// sr-only
+// -----------------------------------------------------------------------------
+// Visually hides an element while keeping it announced to screen readers.
+// Standard pattern (Tailwind + Bootstrap parity).
+//
+// Usage:
+//   .label { @include sr-only; }
+// -----------------------------------------------------------------------------
+
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Optional inverse: undo `sr-only` (e.g. when revealing on focus).
+@mixin not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+// -----------------------------------------------------------------------------
+// Breakpoint mixins
+// -----------------------------------------------------------------------------
+// Mobile-first: wrap the rules that should apply at >= the given breakpoint.
+// Values match `app/constants/breakpoints.ts` (768 / 1024).
+// -----------------------------------------------------------------------------
+
+@mixin tablet-and-up {
+  @media (min-width: v.$breakpoint-tablet-min) {
+    @content;
+  }
+}
+
+@mixin desktop-and-up {
+  @media (min-width: v.$breakpoint-desktop-min) {
+    @content;
+  }
+}
+
+// Convenience: mobile-only (strictly below tablet breakpoint).
+@mixin mobile-only {
+  @media (max-width: #{v.$breakpoint-tablet-min - 1px}) {
+    @content;
+  }
+}
