@@ -1,8 +1,83 @@
 @import "tailwindcss";
 
+/* -----------------------------------------------------------------------------
+ * Tailwind v4 dark variant
+ * -----------------------------------------------------------------------------
+ * Tell Tailwind to drive `dark:` utilities from the `.dark` class on <html>
+ * (toggled by the inline no-flash script and by `ThemeProvider`). The
+ * `&:where(.dark, .dark *)` selector uses zero-specificity matching so dark
+ * styles compose with author styles without specificity wars.
+ * --------------------------------------------------------------------------- */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* -----------------------------------------------------------------------------
+ * Shared design tokens (mirrors `app/lib/sass/_variables.scss`)
+ * -----------------------------------------------------------------------------
+ * SCSS Modules reference these via `var(--name, $fallback)` so the fallback
+ * keeps things working even when this stylesheet is not loaded (e.g. in unit
+ * tests). Emitting them here as well makes the tokens globally available to
+ * Tailwind utilities and inline styles.
+ * --------------------------------------------------------------------------- */
 :root {
+  /* Background / foreground used by the Header chrome and the document body. */
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Surface tokens — used by elevated cards / popovers (NavDropdown, etc.).
+   * The `surface` slightly contrasts with the document background so the
+   * popover is readable when stacked on the body. `surface-border` and
+   * `surface-shadow` mirror the dropdown's outline + drop shadow so they
+   * track the active palette automatically. */
+  --surface: #ffffff;
+  --surface-border: rgba(0, 0, 0, 0.08);
+  --surface-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* Hover tint for transparent affordances (nav items, close buttons,
+   * theme toggle). Stays subtle on both palettes by leaning on translucent
+   * black/white. */
+  --hover-tint: rgba(0, 0, 0, 0.04);
+
+  /* Muted foreground — used by section headings and other secondary text. */
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+
+  /* StatusIndicator palette (Req 6). */
+  --si-idle: #d1d5db;
+  --si-active: #2563eb;
+  --si-done: #16a34a;
+  --si-error: #dc2626;
+
+  /* AnnouncementBanner variant palette (Req 8, 9, 10). */
+  --banner-info-bg: #dbeafe;
+  --banner-info-fg: #1e3a8a;
+  --banner-info-edge: #93c5fd;
+  --banner-warning-bg: #fef3c7;
+  --banner-warning-fg: #78350f;
+  --banner-warning-edge: #fcd34d;
+  --banner-error-bg: #fee2e2;
+  --banner-error-fg: #7f1d1d;
+  --banner-error-edge: #fca5a5;
+
+  /* Focus ring (used by the `focus-ring` SCSS mixin). */
+  --focus-ring-color: #2563eb;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+/* Dark palette overrides for the document chrome. Per-component dark tweaks
+ * live in their respective `.module.scss` files via `:global(.dark) &`. */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+
+  /* Slightly lifted surface so popovers read as elevated above the body.
+   * The translucent border + tint keep the dropdown from feeling like a
+   * solid block in dark mode. */
+  --surface: #18181b;
+  --surface-border: rgba(255, 255, 255, 0.12);
+  --surface-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  --hover-tint: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(237, 237, 237, 0.7);
 }
 
 @theme inline {
@@ -12,15 +87,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scroll-lock helper
+ * -----------------------------------------------------------------------------
+ * Applied to <body> by the mobile nav overlay while it is open so the page
+ * underneath cannot scroll. The body keeps its layout offsets so removing the
+ * class restores the previous scroll position automatically.
+ * --------------------------------------------------------------------------- */
+.scroll-lock {
+  overflow: hidden;
 }

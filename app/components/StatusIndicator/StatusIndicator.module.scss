@@ -1,0 +1,95 @@
+// =============================================================================
+// FE-01 App Shell — StatusIndicator styles
+// -----------------------------------------------------------------------------
+// Shape and color rules for the four indicator variants. Color tokens come
+// from `app/lib/sass/_variables.scss` via CSS custom properties (`--si-*`)
+// with SCSS-time fallbacks so the component still renders correctly when
+// `css-tokens` has not been emitted on :root yet (e.g. in isolated tests).
+//
+// Class naming follows BEM:
+//   .indicator                  — base circle
+//   .indicator--idle            — variant: idle
+//   .indicator--active          — variant: active (with ring)
+//   .indicator--done            — variant: done   (with ✓ glyph)
+//   .indicator--error           — variant: error  (with ! glyph)
+//   .glyph                      — the inner ✓ / ! span
+//
+// Sizing: 6×6 on mobile, 8×8 from tablet upward (Req 17.3 + design.md sizing).
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Base: the colored circle. The inline glyphs (✓ / "!") are rendered as
+// children and inherit `currentColor`, which we set to white so they read
+// against the saturated background.
+// -----------------------------------------------------------------------------
+
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.375rem;  // 6px — mobile
+  height: 0.375rem; // 6px — mobile
+  border-radius: 9999px;
+  color: #ffffff;
+  line-height: 1;
+  font-size: 0.5rem; // sized so the inner ✓ / ! glyph fits the 8px circle
+  font-weight: 700;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+
+  @include m.tablet-and-up {
+    width: 0.5rem;  // 8px — tablet/desktop
+    height: 0.5rem; // 8px — tablet/desktop
+    font-size: 0.625rem;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Glyph wrapper — keeps the ✓ / ! centered inside the circle.
+// -----------------------------------------------------------------------------
+
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+// -----------------------------------------------------------------------------
+// Variant: idle
+// -----------------------------------------------------------------------------
+
+.indicator--idle {
+  background-color: var(--si-idle, #{v.$si-idle});
+}
+
+// -----------------------------------------------------------------------------
+// Variant: active — solid color + subtle ring per design.md.
+// -----------------------------------------------------------------------------
+
+.indicator--active {
+  background-color: var(--si-active, #{v.$si-active});
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+// -----------------------------------------------------------------------------
+// Variant: done — solid color + ✓ glyph (rendered as a child span).
+// -----------------------------------------------------------------------------
+
+.indicator--done {
+  background-color: var(--si-done, #{v.$si-done});
+}
+
+// -----------------------------------------------------------------------------
+// Variant: error — solid color + ! glyph (rendered as a child span).
+// -----------------------------------------------------------------------------
+
+.indicator--error {
+  background-color: var(--si-error, #{v.$si-error});
+}

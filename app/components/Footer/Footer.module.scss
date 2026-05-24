@@ -1,0 +1,32 @@
+// =============================================================================
+// FE-01 App Shell — Footer styles
+// -----------------------------------------------------------------------------
+// Stateful styling for the disabled placeholder links. While Tailwind owns the
+// footer layout (`border-t py-4 px-4 text-sm flex gap-4 justify-center`), the
+// `aria-disabled="true"` placeholders need a couple of stateful rules that are
+// awkward to express as utility classes:
+//
+//   - `cursor: not-allowed` to flag the placeholder state on hover.
+//   - `pointer-events: none` to neutralize the `href="#"` navigation that would
+//     otherwise scroll to the top of the page when clicked.
+//   - A subtle opacity drop and a hover/focus outline that reuses the shared
+//     focus-ring token.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
