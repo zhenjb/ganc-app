@@ -252,7 +252,7 @@ export function Header(): React.JSX.Element {
         </div>
 
         {/* Center region — primary navigation (Req 3.5). */}
-        <div className="flex items-center justify-center flex-1 min-w-0">
+        <div className="flex items-center justify-center flex-1 min-w-0 overflow-hidden">
           <Nav />
         </div>
 

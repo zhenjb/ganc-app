@@ -1,0 +1,67 @@
+// =============================================================================
+// Toast — transient copy-confirmation notification.
+// -----------------------------------------------------------------------------
+// Positioned fixed at the bottom-center of the viewport. Transitions between
+// visible and hidden states using opacity + translateY so the animation is
+// purely cosmetic and does not affect the live-region DOM node (which must
+// remain mounted for screen readers to pick up announcements).
+//
+// Dark mode is handled via `:global(.dark) &` so the override works with the
+// class-based dark mode strategy (`.dark` on <html>).
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// Duration falls back to the SCSS token if the CSS custom property is not set.
+$_default-duration: 300ms;
+
+.toast {
+  // Layout — fixed, bottom-center, above other content.
+  position: fixed;
+  bottom: v.$space-6;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 9999;
+
+  // Sizing & typography.
+  padding: v.$space-2 v.$space-4;
+  border-radius: 0.375rem; // rounded-md
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  pointer-events: none; // decorative — never intercepts clicks
+
+  // Light-mode colors.
+  background: #1f2937; // gray-800
+  color: #f9fafb;      // gray-50
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  // Transition — driven by --toast-duration custom property with fallback.
+  transition:
+    opacity var(--toast-duration, #{$_default-duration}) ease,
+    transform var(--toast-duration, #{$_default-duration}) ease;
+
+  // Dark mode override — lighter surface so it contrasts against dark bg.
+  :global(.dark) & {
+    background: #e5e7eb; // gray-200
+    color: #111827;      // gray-900
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+// Visible state — fully opaque, at rest position.
+.toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+// Hidden state — transparent and shifted down slightly.
+// The element stays in the DOM (live region must remain registered).
+.toast--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(v.$space-2);
+  // Prevent the hidden toast from being announced by screen readers when empty.
+  // `aria-hidden` is not used because we need the live region to stay active;
+  // instead we rely on the empty text content strategy in the component.
+}

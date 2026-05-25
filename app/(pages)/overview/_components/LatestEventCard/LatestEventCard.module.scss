@@ -1,0 +1,64 @@
+// =============================================================================
+// LatestEventCard — card shell styles.
+// -----------------------------------------------------------------------------
+// Provides a rounded card with a distinct heading and content area.
+// Dark mode is handled via `:global(.dark) &` overrides so the component
+// works with the `.dark` class on <html> (TailwindCSS v4 class-based dark mode).
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb; // gray-200
+  border-radius: 0.5rem;
+  overflow: hidden;
+
+  :global(.dark) & {
+    background: #1f2937; // gray-800
+    border-color: #374151; // gray-700
+  }
+}
+
+.heading {
+  margin: 0;
+  padding: v.$space-3 v.$space-4;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: #111827; // gray-900
+  background: #f9fafb; // gray-50
+  border-bottom: 1px solid #e5e7eb; // gray-200
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+    background: #111827; // gray-900
+    border-bottom-color: #374151; // gray-700
+  }
+}
+
+.content {
+  padding: v.$space-4;
+  flex: 1 1 auto;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: #374151; // gray-700
+
+  :global(.dark) & {
+    color: #d1d5db; // gray-300
+  }
+}
+
+.emptyMessage {
+  margin: 0;
+  color: #9ca3af; // gray-400
+  font-style: italic;
+
+  :global(.dark) & {
+    color: #6b7280; // gray-500
+  }
+}

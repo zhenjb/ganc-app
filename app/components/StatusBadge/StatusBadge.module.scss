@@ -1,0 +1,42 @@
+// =============================================================================
+// Overview Screen (FE-03) — StatusBadge styles
+// -----------------------------------------------------------------------------
+// Base layout and typography for the status badge pill. Color is applied via
+// Tailwind utility classes in the component (tone-based mapping), so this
+// module only handles shape, spacing, and font weight.
+//
+// Dark mode color overrides are handled by Tailwind `dark:` variants in the
+// component — no `:global(.dark) &` rules needed here.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Base badge — full-width row card
+// -----------------------------------------------------------------------------
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem; // 12px 16px
+  border-radius: 0.5rem;
+  font-size: 0.875rem; // 14px
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.label {
+  font-weight: 400;
+  opacity: 0.8;
+}

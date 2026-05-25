@@ -200,10 +200,10 @@ export function Nav({ items: itemsProp }: NavProps = {}): React.JSX.Element {
   // when `mobileOpen` is false, so the DOM stays clean.
   // ---------------------------------------------------------------------------
   if (!isTabletOrUp) {
-    const HamburgerIcon = icons.hamburger;
+    // const HamburgerIcon = icons.hamburger;
     return (
       <nav className={styles.navRoot} aria-label="Primary">
-        <button
+        {/* <button
           type="button"
           aria-label="Open menu"
           aria-expanded={mobileOpen}
@@ -218,7 +218,7 @@ export function Nav({ items: itemsProp }: NavProps = {}): React.JSX.Element {
           activeTabId={activeTabId}
           isOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
-        />
+        /> */}
       </nav>
     );
   }
