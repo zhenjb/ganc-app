@@ -83,8 +83,11 @@
 .label {
   display: inline-block;
 
-  // Tablet only: visually hide the label, keep it accessible to screen readers.
-  @media (min-width: #{v.$breakpoint-tablet-min}) and (max-width: #{v.$breakpoint-desktop-min - 1px}) {
+  // Below the nav-labels breakpoint (< 1280px): visually hide the label,
+  // keep it accessible to screen readers. This covers both the tablet range
+  // (768–1023px) and the narrow-desktop range (1024–1279px) where the header
+  // does not have enough horizontal space for icon + text nav items.
+  @media (min-width: #{v.$breakpoint-tablet-min}) and (max-width: #{v.$breakpoint-nav-labels-min - 1px}) {
     @include m.sr-only;
   }
 }
@@ -373,6 +376,11 @@
 .navRoot {
   display: inline-flex;
   align-items: center;
+  // Prevent the nav from being crushed below its icon-only footprint.
+  // 6 top-level items × 2.5rem (icon + padding) + 5 gaps × 0.25rem ≈ 16.25rem.
+  // Rounded to a safe floor that accommodates the dropdown chevrons.
+  min-width: 17rem;
+  flex-shrink: 0;
 }
 
 .navList {
@@ -382,6 +390,7 @@
   display: inline-flex;
   align-items: center;
   gap: v.$space-1;
+  flex-wrap: nowrap;
 }
 
 .hamburger {

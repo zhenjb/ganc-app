@@ -1,0 +1,105 @@
+// =============================================================================
+// OverviewScreen — module styles
+// -----------------------------------------------------------------------------
+// Provides structural styles for the OverviewScreen orchestrator.
+// The responsive grid itself is handled by Tailwind utility classes
+// (`grid grid-cols-1 lg:grid-cols-3 gap-6`) applied directly in the TSX.
+// This module handles spacing, column layout helpers, status panel chrome,
+// and the syncing hint.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Root wrapper
+// -----------------------------------------------------------------------------
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-6;
+  width: 100%;
+}
+
+// -----------------------------------------------------------------------------
+// Column — vertical stack inside each grid cell
+// -----------------------------------------------------------------------------
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-6;
+}
+
+// -----------------------------------------------------------------------------
+// Status panel
+// -----------------------------------------------------------------------------
+
+.statusPanel {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  padding: v.$space-4;
+  border-radius: 0.5rem;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+
+  :global(.dark) & {
+    background-color: var(--color-surface-dark, #1f2937);
+    border-color: var(--color-border-dark, #374151);
+  }
+}
+
+.statusHeading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  :global(.dark) & {
+    color: var(--color-text-secondary-dark, #9ca3af);
+  }
+}
+
+.statusBadges {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+// -----------------------------------------------------------------------------
+// Syncing hint — shown in LatestEventsPanel area when mode=real and no data
+// -----------------------------------------------------------------------------
+
+.syncingHint {
+  padding: v.$space-3 v.$space-4;
+  border-radius: 0.375rem;
+  background-color: var(--banner-info-bg, #{v.$banner-info-bg});
+  color: var(--banner-info-fg, #{v.$banner-info-fg});
+  border: 1px solid var(--banner-info-edge, #{v.$banner-info-edge});
+  font-size: 0.875rem;
+
+  :global(.dark) & {
+    background-color: #1e3a5f;
+    color: #bfdbfe;
+    border-color: #1d4ed8;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Reference strip wrapper — adds top separation from the grid
+// -----------------------------------------------------------------------------
+
+.referenceStripWrapper {
+  padding-top: v.$space-4;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.75rem;
+
+  :global(.dark) & {
+    border-color: var(--color-border-dark, #374151);
+    color: var(--color-text-secondary-dark, #9ca3af);
+  }
+}
