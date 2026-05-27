@@ -48,7 +48,6 @@ import {
   isErrorTooltipNeeded,
   type StatusValue,
 } from "@/app/components/Nav/resolveStatus";
-import StatusIndicator from "@/app/components/StatusIndicator/StatusIndicator";
 import type { NavParentDefinition, NavTabId } from "@/app/constants/nav";
 import { useEscapeKey } from "@/app/lib/hooks/useEscapeKey";
 import { useOnClickOutside } from "@/app/lib/hooks/useOnClickOutside";
@@ -66,8 +65,6 @@ export interface NavDropdownProps {
   isParentActive: boolean;
   /** Active child id, propagated so the highlighted row in the popover matches the route. */
   activeChildId: NavTabId | null;
-  /** Per-child resolved status, keyed by child id. */
-  childStatuses: Record<NavTabId, StatusValue>;
   /** Open / close state (controlled by parent Nav). */
   isOpen: boolean;
   /** Parent toggles the dropdown id; this fires when the trigger is clicked. */
@@ -91,7 +88,6 @@ export function NavDropdown({
   parentStatus,
   isParentActive,
   activeChildId,
-  childStatuses,
   isOpen,
   onToggle,
   onClose,
@@ -121,17 +117,12 @@ export function NavDropdown({
             <ParentIcon aria-hidden="true" />
           </span>
           <span className={styles.labelMobile}>{definition.label}</span>
-          <StatusIndicator
-            value={parentStatus}
-            className={styles.indicator}
-          />
         </div>
         <ul className={styles.dropdownMobileList} role="list">
           {definition.children.map((child) => (
             <li key={child.id}>
               <NavItem
                 definition={child}
-                status={childStatuses[child.id] ?? "idle"}
                 isActive={activeChildId === child.id}
                 isMobile
                 onSelect={onClose}
@@ -179,7 +170,6 @@ export function NavDropdown({
         >
           <ChevronIcon />
         </span>
-        <StatusIndicator value={parentStatus} className={styles.indicator} />
       </button>
 
       {isOpen ? (
@@ -188,7 +178,6 @@ export function NavDropdown({
             <li key={child.id} role="none">
               <NavItem
                 definition={child}
-                status={childStatuses[child.id] ?? "idle"}
                 isActive={activeChildId === child.id}
                 onSelect={onClose}
               />

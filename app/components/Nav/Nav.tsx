@@ -235,10 +235,6 @@ export function Nav({ items: itemsProp }: NavProps = {}): React.JSX.Element {
             const isParentActive = def.children.some(
               (c) => c.id === activeChildId,
             );
-            // Per-child status map for this parent — narrowed to the children
-            // for clarity; `statuses` already contains the same values but
-            // typed `Record<NavTabId, StatusValue>`.
-            const childStatuses = statuses;
             return (
               <li key={def.id} role="none">
                 <NavDropdown
@@ -246,7 +242,6 @@ export function Nav({ items: itemsProp }: NavProps = {}): React.JSX.Element {
                   parentStatus={statuses[def.id] ?? "idle"}
                   isParentActive={isParentActive}
                   activeChildId={activeChildId}
-                  childStatuses={childStatuses}
                   isOpen={openDropdownId === def.id}
                   onToggle={() =>
                     setOpenDropdownId((prev) =>
@@ -264,7 +259,6 @@ export function Nav({ items: itemsProp }: NavProps = {}): React.JSX.Element {
             <li key={leaf.id} role="none">
               <NavItem
                 definition={leaf}
-                status={statuses[leaf.id] ?? "idle"}
                 isActive={activeTabId === leaf.id}
               />
             </li>
