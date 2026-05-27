@@ -74,7 +74,7 @@ export function NavItem({
 }: NavItemProps): React.JSX.Element {
   const Icon = icons[definition.iconKey];
 
-  const labelClassName = isMobile ? styles.labelMobile : styles.label;
+
 
   // -------------------------------------------------------------------------
   // Disabled placeholder (`failure-demo`). The `disabledTooltip` literal
@@ -94,7 +94,7 @@ export function NavItem({
         <span className={styles.iconWrap}>
           <Icon aria-hidden="true" />
         </span>
-        <span className={labelClassName}>{definition.label}</span>
+        <span className={styles.label}>{definition.label}</span>
       </a>
     );
   }
@@ -113,7 +113,7 @@ export function NavItem({
       <span className={styles.iconWrap}>
         <Icon aria-hidden="true" />
       </span>
-      <span className={labelClassName}>{definition.label}</span>
+      <span className={styles.label}>{definition.label}</span>
     </Link>
   );
 }

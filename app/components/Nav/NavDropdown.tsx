@@ -96,7 +96,7 @@ export function NavDropdown({
   const containerRef = useRef<HTMLDivElement>(null);
   const ParentIcon = icons[definition.iconKey];
   const ChevronIcon = icons.chevron;
-
+  console.log(definition)
   // Close handlers — only relevant on desktop/tablet. On mobile we render a
   // flat group, so no popover and no close affordance is needed.
   useOnClickOutside(containerRef, () => {
@@ -171,7 +171,6 @@ export function NavDropdown({
           <ChevronIcon />
         </span>
       </button>
-
       {isOpen ? (
         <ul role="menu" className={styles.dropdownPopover}>
           {definition.children.map((child) => (

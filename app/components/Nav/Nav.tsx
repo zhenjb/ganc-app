@@ -36,9 +36,6 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
-
-import { icons } from "@/app/assets";
-import MobileNavOverlay from "@/app/components/Nav/MobileNavOverlay";
 import NavDropdown from "@/app/components/Nav/NavDropdown";
 import NavItem from "@/app/components/Nav/NavItem";
 import {
