@@ -9,7 +9,6 @@ import OverviewIcon from "./icons/OverviewIcon";
 import ProofIcon from "./icons/ProofIcon";
 import SubmitIcon from "./icons/SubmitIcon";
 import SunIcon from "./icons/SunIcon";
-import SystemIcon from "./icons/SystemIcon";
 import WithdrawIcon from "./icons/WithdrawIcon";
 
 /**
@@ -30,5 +29,4 @@ export const icons = {
   chevron: ChevronIcon,
   sun: SunIcon,
   moon: MoonIcon,
-  system: SystemIcon,
 } as const;

@@ -155,37 +155,23 @@ function StateRootBadge({
 // -----------------------------------------------------------------------------
 
 function ThemeToggleButton(): React.JSX.Element {
-  const { theme, resolvedTheme, cycleTheme } = useTheme();
+  const { theme, cycleTheme } = useTheme();
 
-  // Pick the icon based on the user's explicit choice. While `theme` is
-  // `"system"` we surface the system icon so the button reflects the
-  // chosen mode rather than the resolved palette; for explicit `"light"`
-  // and `"dark"` we use the matching sun/moon glyph.
-  const Icon =
-    theme === "system"
-      ? icons.system
-      : resolvedTheme === "dark"
-        ? icons.moon
-        : icons.sun;
+  // Simple toggle: light shows sun, dark shows moon.
+  const Icon = theme === "dark" ? icons.moon : icons.sun;
 
   return (
     <button
       type="button"
-      // Exact literal mandated by Req 14.2 — must not be translated or
-      // augmented. Tests assert `aria-label="Toggle theme"` verbatim.
       aria-label="Toggle theme"
       onClick={cycleTheme}
       className={styles.themeToggle}
       data-testid="header-theme-toggle"
       data-theme={theme}
-      data-resolved-theme={resolvedTheme}
     >
       <span className={styles.themeIcon}>
         <Icon aria-hidden="true" />
       </span>
-      {/* sr-only text helps screen readers announce the current mode while
-          the button's primary label stays the literal "Toggle theme". */}
-      <span className={styles.themeBadge}>{theme}</span>
     </button>
   );
 }
