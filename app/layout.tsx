@@ -18,10 +18,7 @@
 //
 // The no-flash script runs synchronously *before* React hydrates and *before*
 // first paint, so the page is rendered with the correct palette out of the
-// gate. It mirrors the resolution rule used by `ThemeProvider`:
-//   - explicit "dark"   → add the "dark" class
-//   - explicit "light"  → remove it
-//   - "system" / null   → mirror `prefers-color-scheme: dark`
+// gate. It checks localStorage for "dark" and adds the class accordingly.
 // Wrapped in a try/catch so storage-blocking browsers cannot crash boot.
 // =============================================================================
 
@@ -48,13 +45,12 @@ export const metadata: Metadata = {
 };
 
 /**
- * Inline "no-flash" theme script. Reads `localStorage["theme"]` synchronously,
- * resolves the `"system"` case via `prefers-color-scheme`, and toggles
- * `<html class="dark">` *before* the first paint so users never see the wrong
- * palette flash during hydration. Kept as a single self-invoking expression so
- * it stays under one tick of the parser.
+ * Inline "no-flash" theme script. Reads `localStorage["theme"]` synchronously
+ * and toggles `<html class="dark">` *before* the first paint so users never
+ * see the wrong palette flash during hydration. Only "dark" adds the class;
+ * anything else (including missing/invalid values) defaults to light.
  */
-const NO_FLASH_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");var s=window.matchMedia("(prefers-color-scheme: dark)").matches;var d=t==="dark"||((!t||t==="system")&&s);var c=document.documentElement.classList;if(d){c.add("dark");}else{c.remove("dark");}}catch(_){}})();`;
+const NO_FLASH_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;if(t==="dark"){c.add("dark");}else{c.remove("dark");}}catch(_){}})();`;
 
 export default function RootLayout({
   children,

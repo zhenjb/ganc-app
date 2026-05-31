@@ -43,21 +43,14 @@
 import Link from "next/link";
 
 import { icons } from "@/app/assets";
-import StatusIndicator from "@/app/components/StatusIndicator/StatusIndicator";
-import {
-  isErrorTooltipNeeded,
-  type StatusValue,
-} from "@/app/components/Nav/resolveStatus";
 import type { NavLeafDefinition } from "@/app/constants/nav";
 
 import styles from "./Nav.module.scss";
 
-/** Literal tooltip text rendered on the trailing-edge of an errored tab (Req 6.7–6.10). */
-const ERROR_TOOLTIP = "Go to Failure Demo";
+
 
 export interface NavItemProps {
   definition: NavLeafDefinition;
-  status: StatusValue;
   isActive: boolean;
   /** When rendered inside the mobile overlay we use vertical layout + always-visible label. */
   isMobile?: boolean;
@@ -75,22 +68,13 @@ function cx(...parts: ReadonlyArray<string | false | null | undefined>): string 
 
 export function NavItem({
   definition,
-  status,
   isActive,
   isMobile = false,
   onSelect,
 }: NavItemProps): React.JSX.Element {
   const Icon = icons[definition.iconKey];
 
-  // Compute the trailing-edge tooltip per Req 6.7–6.10. The tooltip only
-  // surfaces on tabs whose status source is a backend status — i.e. all four
-  // of "deposit" | "withdraw" | "batch" | "proof". Tabs with `statusSource`
-  // null (Overview, Failure Demo) cannot reach `"error"` via `resolveStatus`,
-  // but we belt-and-braces guard that here anyway.
-  const showErrorTooltip =
-    isErrorTooltipNeeded(status, isActive) && definition.statusSource !== null;
 
-  const labelClassName = isMobile ? styles.labelMobile : styles.label;
 
   // -------------------------------------------------------------------------
   // Disabled placeholder (`failure-demo`). The `disabledTooltip` literal
@@ -110,8 +94,7 @@ export function NavItem({
         <span className={styles.iconWrap}>
           <Icon aria-hidden="true" />
         </span>
-        <span className={labelClassName}>{definition.label}</span>
-        <StatusIndicator value={status} className={styles.indicator} />
+        <span className={styles.label}>{definition.label}</span>
       </a>
     );
   }
@@ -123,7 +106,6 @@ export function NavItem({
     <Link
       href={definition.href}
       aria-current={isActive ? "page" : undefined}
-      title={showErrorTooltip ? ERROR_TOOLTIP : undefined}
       onClick={onSelect}
       className={cx(styles.item, isActive && styles.active)}
       data-tab-id={definition.id}
@@ -131,8 +113,7 @@ export function NavItem({
       <span className={styles.iconWrap}>
         <Icon aria-hidden="true" />
       </span>
-      <span className={labelClassName}>{definition.label}</span>
-      <StatusIndicator value={status} className={styles.indicator} />
+      <span className={styles.label}>{definition.label}</span>
     </Link>
   );
 }

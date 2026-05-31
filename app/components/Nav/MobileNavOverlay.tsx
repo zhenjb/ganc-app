@@ -29,7 +29,6 @@
 // =============================================================================
 
 import NavItem from "@/app/components/Nav/NavItem";
-import type { StatusValue } from "@/app/components/Nav/resolveStatus";
 import type {
   NavItemDefinition,
   NavLeafDefinition,
@@ -43,8 +42,6 @@ import styles from "./Nav.module.scss";
 export interface MobileNavOverlayProps {
   /** Top-level NavItem definitions (parents and leaves). */
   items: ReadonlyArray<NavItemDefinition>;
-  /** Per-item resolved status, keyed by NavTabId. */
-  statuses: Record<NavTabId, StatusValue>;
   /** Currently active NavTabId, or null. Used to highlight the matching row. */
   activeTabId: NavTabId | null;
   /** Whether the overlay is currently visible. */
@@ -66,7 +63,6 @@ function isParentDefinition(
 
 export function MobileNavOverlay({
   items,
-  statuses,
   activeTabId,
   isOpen,
   onClose,
@@ -107,7 +103,6 @@ export function MobileNavOverlay({
                       <li key={child.id}>
                         <NavItem
                           definition={child}
-                          status={statuses[child.id] ?? "idle"}
                           isActive={activeTabId === child.id}
                           isMobile={true}
                           onSelect={onClose}
@@ -124,7 +119,6 @@ export function MobileNavOverlay({
               <li key={leaf.id}>
                 <NavItem
                   definition={leaf}
-                  status={statuses[leaf.id] ?? "idle"}
                   isActive={activeTabId === leaf.id}
                   isMobile={true}
                   onSelect={onClose}

@@ -212,6 +212,20 @@
     display: flex;
     width: 100%;
   }
+
+  // Override sr-only on .label inside the popover so child items always show
+  // their text label, even at tablet/narrow-desktop breakpoints.
+  .label {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    clip-path: none !important;
+    white-space: normal !important;
+  }
 }
 
 // -----------------------------------------------------------------------------

@@ -8,7 +8,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -21,18 +20,14 @@ import {
 /**
  * Public shape of the value published by {@link ThemeProvider}.
  *
- * - `theme` reflects the user's explicit choice.
- * - `resolvedTheme` is what is actually applied to `<html>` and is always
- *   either `"light"` or `"dark"` — it collapses the `"system"` case down
- *   to whichever palette `prefers-color-scheme` currently reports.
+ * - `theme` is the active palette: `"light"` or `"dark"`.
  * - `setTheme` replaces the active choice (and persists it).
- * - `cycleTheme` advances through `system → light → dark → system` per
- *   {@link nextTheme} (Req 14.3).
+ * - `toggleTheme` switches between light and dark.
  */
 export interface ThemeContextValue {
-  /** What the user explicitly chose. */
+  /** The active theme: "light" | "dark". */
   theme: ThemeMode;
-  /** What is actually applied to <html>: "light" | "dark". */
+  /** Alias kept for compatibility — same as `theme`. */
   resolvedTheme: "light" | "dark";
   setTheme: (next: ThemeMode) => void;
   cycleTheme: () => void;
@@ -40,22 +35,12 @@ export interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-/** Media query used to mirror the OS-level dark/light preference. */
-const PREFERS_DARK_QUERY = "(prefers-color-scheme: dark)";
-
-/** Set of literal {@link ThemeMode} values accepted by `localStorage`. */
-const VALID_THEMES: ReadonlySet<ThemeMode> = new Set<ThemeMode>([
-  "system",
-  "light",
-  "dark",
-]);
+/** Set of valid {@link ThemeMode} values accepted from `localStorage`. */
+const VALID_THEMES: ReadonlySet<string> = new Set(["light", "dark"]);
 
 /**
  * Read the persisted {@link ThemeMode} from `localStorage`, falling back
- * to {@link THEME_DEFAULT} when no value is stored, the value is not in
- * `{"system","light","dark"}`, or the call happens during SSR (Req 14.7,
- * 14.8). Wrapped in a `try`/`catch` so that browsers blocking storage
- * access (e.g. private mode quotas) cannot crash the provider.
+ * to {@link THEME_DEFAULT} when no value is stored or the value is invalid.
  */
 function readPersistedTheme(): ThemeMode {
   if (typeof window === "undefined") {
@@ -63,7 +48,7 @@ function readPersistedTheme(): ThemeMode {
   }
   try {
     const raw = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (raw != null && VALID_THEMES.has(raw as ThemeMode)) {
+    if (raw != null && VALID_THEMES.has(raw)) {
       return raw as ThemeMode;
     }
   } catch {
@@ -73,47 +58,14 @@ function readPersistedTheme(): ThemeMode {
 }
 
 /**
- * Subscribe to the OS-level `prefers-color-scheme: dark` media query via
- * `useSyncExternalStore`. SSR (and the very first client render before
- * hydration commits) reports `false`; the post-mount read picks up the
- * real OS preference and any subsequent changes. Using
- * `useSyncExternalStore` keeps `resolvedTheme` purely derived, avoiding a
- * `setState` inside `useEffect` (Req 14.6).
+ * Apply the theme to `<html>` by toggling the `"dark"` class. No-op on server.
  */
-function usePrefersDark(): boolean {
-  const subscribe = useCallback((onStoreChange: () => void) => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return () => {};
-    }
-    const media = window.matchMedia(PREFERS_DARK_QUERY);
-    media.addEventListener("change", onStoreChange);
-    return () => {
-      media.removeEventListener("change", onStoreChange);
-    };
-  }, []);
-
-  const getSnapshot = useCallback((): boolean => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return false;
-    }
-    return window.matchMedia(PREFERS_DARK_QUERY).matches;
-  }, []);
-
-  const getServerSnapshot = useCallback((): boolean => false, []);
-
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
-
-/**
- * Apply `resolvedTheme` to `<html>` by toggling the literal `"dark"`
- * class (Req 14.4, 14.5, 14.6). No-op on the server.
- */
-function applyResolvedThemeToDocument(resolved: "light" | "dark"): void {
+function applyThemeToDocument(theme: ThemeMode): void {
   if (typeof document === "undefined") {
     return;
   }
   const root = document.documentElement;
-  if (resolved === "dark") {
+  if (theme === "dark") {
     root.classList.add("dark");
   } else {
     root.classList.remove("dark");
@@ -121,42 +73,33 @@ function applyResolvedThemeToDocument(resolved: "light" | "dark"): void {
 }
 
 /**
- * Provider that owns the user's theme preference and the resolved
- * light/dark palette. Mount at the root of `app/layout.tsx` so the
- * inline no-flash script's choice is taken over by React after
- * hydration without flicker (Req 14).
+ * Provider that owns the user's theme preference. Mount at the root of
+ * `app/layout.tsx` so the inline no-flash script's choice is taken over
+ * by React after hydration without flicker.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(readPersistedTheme);
-  const prefersDark = usePrefersDark();
+  // Initialize with THEME_DEFAULT so server and first client render match.
+  // The no-flash script already applied the correct class to <html>, so
+  // there's no visual flash even if localStorage has "dark".
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    // On the client, read localStorage immediately during initialization.
+    // This is safe because the no-flash script already set the correct
+    // class on <html>, so the visual state is already correct.
+    if (typeof window === "undefined") {
+      return THEME_DEFAULT;
+    }
+    return readPersistedTheme();
+  });
 
-  // `resolvedTheme` is purely derived from the explicit `theme` and the
-  // current OS preference. Keeping it derived (no `useState` +
-  // `useEffect`) avoids cascading renders and satisfies React 19's
-  // `react-hooks/set-state-in-effect` rule, while still re-applying the
-  // `<html class="dark">` toggle whenever either input changes.
-  const resolvedTheme: "light" | "dark" =
-    theme === "light" || theme === "dark"
-      ? theme
-      : prefersDark
-        ? "dark"
-        : "light";
-
-  // Skip persistence on the very first render: the value already came
-  // from `localStorage`, so writing it back would be a redundant
-  // round-trip and would also clobber a fresh value written by the
-  // inline no-flash script in between SSR and hydration.
+  // Track whether we've completed the first render to skip redundant persistence.
   const isInitialRender = useRef(true);
 
-  // Keep `<html class="dark">` in sync whenever the resolved palette
-  // changes (Req 14.4, 14.5, 14.6).
+  // Keep `<html class="dark">` in sync whenever the theme changes.
   useEffect(() => {
-    applyResolvedThemeToDocument(resolvedTheme);
-  }, [resolvedTheme]);
+    applyThemeToDocument(theme);
+  }, [theme]);
 
-  // Persist the active theme on every change after the initial render
-  // (Req 14.7). Wrapped in `try`/`catch` so storage failures cannot
-  // crash the provider.
+  // Persist the theme on every change after the initial render.
   useEffect(() => {
     if (isInitialRender.current) {
       isInitialRender.current = false;
@@ -181,8 +124,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme, resolvedTheme, setTheme, cycleTheme }),
-    [theme, resolvedTheme, setTheme, cycleTheme],
+    () => ({ theme, resolvedTheme: theme, setTheme, cycleTheme }),
+    [theme, setTheme, cycleTheme],
   );
 
   return (

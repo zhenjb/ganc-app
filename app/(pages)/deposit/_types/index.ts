@@ -1,0 +1,38 @@
+import type { DepositRecord } from "@/app/lib/interfaces/deposit";
+
+/**
+ * Form state for the deposit form.
+ * Tracks user input for depositor address, denomination, and amount.
+ */
+export interface DepositFormState {
+  depositor: string;
+  denom: string;
+  amount: string;
+}
+
+/**
+ * Validation errors that block form submission.
+ * A null value means the field is valid.
+ */
+export interface ValidationErrors {
+  depositor: string | null;
+  amount: string | null;
+}
+
+/**
+ * Validation warnings that do not block submission.
+ * A null value means no warning for the field.
+ */
+export interface ValidationWarnings {
+  amount: string | null;
+}
+
+/**
+ * A single entry in the client-side deposit history list.
+ * Not persisted across page reloads.
+ */
+export interface DepositHistoryEntry {
+  deposit: DepositRecord;
+  /** ISO 8601 timestamp of when the deposit was recorded client-side. */
+  timestamp: string;
+}
