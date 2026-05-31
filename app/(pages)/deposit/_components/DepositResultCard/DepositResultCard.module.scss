@@ -1,0 +1,101 @@
+// =============================================================================
+// DepositResultCard — styles for the deposit result display card.
+// -----------------------------------------------------------------------------
+// Green-accented card showing deposit info after a successful submission.
+// Includes mock mode label and suspicious txHash warning styles.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  padding: v.$space-4;
+  background: #f0fdf4; // green-50
+  border: 1px solid #86efac; // green-300
+  border-radius: 0.5rem;
+
+  :global(.dark) & {
+    background: #052e16; // green-950
+    border-color: #166534; // green-800
+  }
+}
+
+.mockLabel {
+  display: inline-block;
+  padding: v.$space-1 v.$space-2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: #78350f; // amber-900
+  background: #fef3c7; // amber-100
+  border: 1px solid #fcd34d; // amber-300
+  border-radius: 0.25rem;
+
+  :global(.dark) & {
+    color: #fef3c7; // amber-100
+    background: #78350f; // amber-900
+    border-color: #92400e; // amber-800
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: v.$space-2;
+}
+
+.label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: #166534; // green-800
+  min-width: 5rem;
+  flex-shrink: 0;
+
+  :global(.dark) & {
+    color: #86efac; // green-300
+  }
+}
+
+.value {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827; // gray-900
+  word-break: break-all;
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+  }
+}
+
+.warning {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: v.$space-1 v.$space-2;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  color: #854d0e; // yellow-800
+  background: #fefce8; // yellow-50
+  border: 1px solid #facc15; // yellow-400
+  border-radius: 0.25rem;
+
+  :global(.dark) & {
+    color: #fef9c3; // yellow-100
+    background: #713f12; // yellow-900
+    border-color: #a16207; // yellow-700
+  }
+}
