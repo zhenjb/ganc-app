@@ -24,6 +24,7 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 
 import "./globals.css";
 
@@ -63,11 +64,18 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        {/* Must run before React hydrates — inline, blocking, synchronous. */}
-        <script dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }} />
-      </head>
       <body className="min-h-full flex flex-col">
+        {/*
+         * No-flash theme script. `next/script` with `beforeInteractive`
+         * injects this into the initial HTML and runs it before React
+         * hydrates, so the correct palette is applied before first paint.
+         * Using <Script> (instead of a raw <script> element) avoids React
+         * 19's "Encountered a script tag while rendering" warning, since the
+         * raw element is never executed during client render/hydration.
+         */}
+        <Script id="no-flash-theme" strategy="beforeInteractive">
+          {NO_FLASH_THEME_SCRIPT}
+        </Script>
         <ThemeProvider>
           {/*
            * Children render directly under the root layout. The shared App

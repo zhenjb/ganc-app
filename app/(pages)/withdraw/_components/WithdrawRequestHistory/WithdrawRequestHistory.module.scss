@@ -1,0 +1,224 @@
+// =============================================================================
+// WithdrawRequestHistory — styles for the session-scoped withdraw request list.
+// -----------------------------------------------------------------------------
+// Modeled on DepositHistoryList.module.scss. Renders a card containing a
+// chronological list (newest first) of withdraw requests with per-status badge
+// colors. Dark mode handled via :global(.dark) & overrides.
+//
+// Requirements: 5.1, 5.2, 5.3
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+
+.container {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb; // gray-200
+  border-radius: 0.75rem;
+  padding: v.$space-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  :global(.dark) & {
+    background-color: #1f2937; // gray-800
+    border-color: #374151; // gray-700
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Section heading
+// -----------------------------------------------------------------------------
+
+.heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827; // gray-900
+  margin: 0;
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Empty state
+// -----------------------------------------------------------------------------
+
+.empty {
+  font-size: 0.875rem;
+  color: #6b7280; // gray-500
+  margin: 0;
+  padding: v.$space-2 0;
+
+  :global(.dark) & {
+    color: #9ca3af; // gray-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// History list
+// -----------------------------------------------------------------------------
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+// -----------------------------------------------------------------------------
+// Individual entry (card-like row)
+// -----------------------------------------------------------------------------
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  padding: v.$space-3;
+  border: 1px solid #f3f4f6; // gray-100
+  border-radius: 0.5rem;
+  background-color: #f9fafb; // gray-50
+
+  :global(.dark) & {
+    border-color: #374151; // gray-700
+    background-color: #111827; // gray-900
+  }
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-2;
+}
+
+.entryBody {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-2;
+}
+
+// -----------------------------------------------------------------------------
+// Identifier (monospace, truncated UUID with full value in tooltip)
+// -----------------------------------------------------------------------------
+
+.id {
+  font-size: 0.8125rem;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  color: #2563eb; // blue-600
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  cursor: help;
+
+  :global(.dark) & {
+    color: #60a5fa; // blue-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Amount
+// -----------------------------------------------------------------------------
+
+.amount {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827; // gray-900
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Timestamp
+// -----------------------------------------------------------------------------
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #6b7280; // gray-500
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  :global(.dark) & {
+    color: #9ca3af; // gray-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Status badge — base pill + one modifier per status with distinct colors.
+// -----------------------------------------------------------------------------
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: v.$space-1 v.$space-2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+  border-radius: 9999px; // pill shape
+  flex-shrink: 0;
+}
+
+// pending → amber
+.statusPending {
+  color: #78350f; // amber-900
+  background: #fef3c7; // amber-100
+  border-color: #fcd34d; // amber-300
+
+  :global(.dark) & {
+    color: #fde68a; // amber-200
+    background: #78350f; // amber-900
+    border-color: #92400e; // amber-800
+  }
+}
+
+// processed → blue
+.statusProcessed {
+  color: #1e3a8a; // blue-900
+  background: #dbeafe; // blue-100
+  border-color: #93c5fd; // blue-300
+
+  :global(.dark) & {
+    color: #bfdbfe; // blue-200
+    background: #1e3a8a; // blue-900
+    border-color: #1e40af; // blue-800
+  }
+}
+
+// claimed → green
+.statusClaimed {
+  color: #14532d; // green-900
+  background: #dcfce7; // green-100
+  border-color: #86efac; // green-300
+
+  :global(.dark) & {
+    color: #bbf7d0; // green-200
+    background: #14532d; // green-900
+    border-color: #166534; // green-800
+  }
+}
+
+// rejected → red
+.statusRejected {
+  color: #7f1d1d; // red-900
+  background: #fee2e2; // red-100
+  border-color: #fca5a5; // red-300
+
+  :global(.dark) & {
+    color: #fecaca; // red-200
+    background: #7f1d1d; // red-900
+    border-color: #991b1b; // red-800
+  }
+}
