@@ -1,0 +1,314 @@
+// =============================================================================
+// FE-06 Batch Screen — WitnessPanel styles
+// -----------------------------------------------------------------------------
+// Styles for the collapsible witness panel: a toggle header, an inputs list
+// with per-item copy buttons, and a key/value auxiliary table with a
+// "Show secret (dev only)" checkbox and a dev-only warning.
+//
+// Design tokens are referenced via `var(--token, $fallback)` so the panel still
+// renders correctly in unit tests where the global stylesheet is absent. Dark
+// mode is handled via :global(.dark) & overrides.
+//
+// Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+
+.container {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  :global(.dark) & {
+    background-color: var(--surface, #1f2937); // gray-800
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Collapsible header / toggle
+// -----------------------------------------------------------------------------
+
+.header {
+  display: flex;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  width: 100%;
+  padding: v.$space-4 v.$space-6;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  :global(.dark) & {
+    &:hover {
+      background-color: var(--hover-tint, rgba(255, 255, 255, 0.08));
+    }
+  }
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  transition: transform 0.15s ease;
+
+  &[data-expanded="true"] {
+    transform: rotate(180deg);
+  }
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Body
+// -----------------------------------------------------------------------------
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  padding: v.$space-6;
+  border-top: 1px solid var(--surface-border, #e5e7eb); // gray-200
+
+  :global(.dark) & {
+    border-top-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+  margin: 0;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Inline note / empty states
+// -----------------------------------------------------------------------------
+
+.note {
+  font-size: 0.875rem;
+  color: var(--banner-warning-fg, #{v.$banner-warning-fg});
+  background-color: var(--banner-warning-bg, #{v.$banner-warning-bg});
+  border: 1px solid var(--banner-warning-edge, #{v.$banner-warning-edge});
+  border-radius: 0.375rem;
+  padding: v.$space-2 v.$space-3;
+  margin: 0;
+}
+
+.empty {
+  font-size: 0.875rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  margin: 0;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Inputs list
+// -----------------------------------------------------------------------------
+
+.inputList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.inputItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+  padding: v.$space-2 v.$space-3;
+  border-radius: 0.375rem;
+  background-color: var(--code-surface, #f3f4f6); // gray-100
+
+  :global(.dark) & {
+    background-color: var(--code-surface, #111827); // gray-900
+  }
+}
+
+.inputValue {
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: var(--foreground, #111827); // gray-900
+  word-break: break-all;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Copy button
+// -----------------------------------------------------------------------------
+
+.copyButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: v.$space-1 v.$space-3;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground, #111827); // gray-900
+
+  border: 1px solid var(--surface-border, #d1d5db); // gray-300
+  border-radius: 0.375rem;
+  background-color: var(--surface, #ffffff);
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.98);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+    border-color: var(--surface-border, #374151); // gray-700
+    background-color: var(--surface, #1f2937); // gray-800
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Auxiliary header + secret toggle
+// -----------------------------------------------------------------------------
+
+.auxHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+  flex-wrap: wrap;
+}
+
+.secretToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground, #374151); // gray-700
+  cursor: pointer;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #d1d5db); // gray-300
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Dev-only warning
+// -----------------------------------------------------------------------------
+
+.warning {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--banner-error-fg, #{v.$banner-error-fg});
+  background-color: var(--banner-error-bg, #{v.$banner-error-bg});
+  border: 1px solid var(--banner-error-edge, #{v.$banner-error-edge});
+  border-radius: 0.375rem;
+  padding: v.$space-2 v.$space-3;
+  margin: 0;
+}
+
+// -----------------------------------------------------------------------------
+// Auxiliary table
+// -----------------------------------------------------------------------------
+
+.auxTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  padding: v.$space-2 v.$space-3;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  white-space: nowrap;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+    border-bottom-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.row {
+  border-bottom: 1px solid var(--surface-border, #f3f4f6); // gray-100
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  :global(.dark) & {
+    border-bottom-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.td {
+  padding: v.$space-2 v.$space-3;
+  color: var(--foreground, #111827); // gray-900
+  vertical-align: top;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// Monospace cells for keys and values.
+.mono {
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  word-break: break-all;
+}

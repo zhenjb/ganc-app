@@ -1,0 +1,151 @@
+// =============================================================================
+// FE-06 Batch Screen — HexRevealModal styles
+// -----------------------------------------------------------------------------
+// A centered modal panel over a dimmed overlay. Design tokens are read via
+// `var(--token, $fallback)` so the component still renders correctly in tests
+// that do not load the global stylesheet. Dark mode is handled through the
+// class-based `:global(.dark)` overrides used across the app.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// Backdrop fallback tints (no dedicated SCSS token exists yet).
+$_overlay-tint: rgba(0, 0, 0, 0.5);
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: v.$space-4;
+
+  background-color: var(--overlay-tint, #{$_overlay-tint});
+}
+
+.panel {
+  width: 100%;
+  max-width: 32rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  padding: v.$space-4;
+
+  border-radius: 0.5rem;
+  background-color: var(--surface, #ffffff);
+  color: var(--foreground, #171717);
+  border: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--surface-shadow, 0 8px 24px rgba(0, 0, 0, 0.2));
+
+  :global(.dark) & {
+    background-color: var(--surface, #1f2937);
+    color: var(--foreground, #f9fafb);
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.12));
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground, #374151);
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #d1d5db);
+  }
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--foreground, #171717);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb);
+
+    &:hover {
+      background-color: var(--hover-tint, rgba(255, 255, 255, 0.08));
+    }
+  }
+}
+
+.body {
+  // Allow long hex strings to break across lines rather than overflow.
+  overflow-wrap: anywhere;
+}
+
+.value {
+  display: block;
+  padding: v.$space-2 v.$space-3;
+
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  word-break: break-all;
+
+  border-radius: 0.375rem;
+  background-color: var(--code-surface, #f3f4f6);
+  color: var(--foreground, #111827);
+
+  :global(.dark) & {
+    background-color: var(--code-surface, #111827);
+    color: var(--foreground, #f9fafb);
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: v.$space-2 v.$space-4;
+
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff;
+
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background-color: var(--color-accent, #{v.$si-active});
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}

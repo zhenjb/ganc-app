@@ -1,0 +1,155 @@
+// =============================================================================
+// Batch Screen (FE-06) — WithdrawalsTable styles
+// -----------------------------------------------------------------------------
+// Styles for the WithdrawalsTable component which lists the selected
+// WithdrawRecord items (columns: id, destination, destinationHash, amount,
+// denom, nullifier, status). Shortened hex cells (destinationHash, nullifier)
+// render as inline buttons that open the HexRevealModal.
+//
+// Design tokens are referenced via `var(--token, $fallback)` so the table still
+// renders correctly in unit tests where the global stylesheet is absent.
+// Dark mode is handled via :global(.dark) & overrides.
+//
+// Requirements: 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+
+.container {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.75rem;
+  padding: v.$space-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  :global(.dark) & {
+    background-color: var(--surface, #1f2937); // gray-800
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Section heading
+// -----------------------------------------------------------------------------
+
+.heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+  margin: 0;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Empty state
+// -----------------------------------------------------------------------------
+
+.empty {
+  font-size: 0.875rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  margin: 0;
+  padding: v.$space-2 0;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Table
+// -----------------------------------------------------------------------------
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  padding: v.$space-2 v.$space-3;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  white-space: nowrap;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+    border-bottom-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.row {
+  border-bottom: 1px solid var(--surface-border, #f3f4f6); // gray-100
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  :global(.dark) & {
+    border-bottom-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.td {
+  padding: v.$space-2 v.$space-3;
+  color: var(--foreground, #111827); // gray-900
+  vertical-align: top;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// Monospace cells for identifiers and addresses.
+.mono {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  word-break: break-all;
+}
+
+// -----------------------------------------------------------------------------
+// Hex reveal trigger — shortened destinationHash / nullifier cells.
+// Rendered as a button so it is keyboard-accessible and opens the modal.
+// -----------------------------------------------------------------------------
+
+.hexButton {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--accent, #2563eb); // blue-600
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: var(--accent-hover, #1d4ed8); // blue-700
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent, #2563eb); // blue-600
+    outline-offset: 2px;
+    border-radius: 0.125rem;
+  }
+
+  :global(.dark) & {
+    color: var(--accent, #60a5fa); // blue-400
+
+    &:hover {
+      color: var(--accent-hover, #93c5fd); // blue-300
+    }
+  }
+}
