@@ -1,0 +1,259 @@
+// =============================================================================
+// Batch Screen (FE-06) — BatchInputSelector styles
+// -----------------------------------------------------------------------------
+// Styles for the BatchInputSelector: two checkbox groups (deposits / withdraws),
+// two selection counts, an optional partial-batch warning, and a monospace JSON
+// payload preview.
+//
+// Design tokens are referenced via `var(--token, $fallback)` so the component
+// still renders correctly in unit tests where the global stylesheet is absent.
+// Dark mode is handled via :global(.dark) & overrides.
+//
+// Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 4.2, 4.3
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+
+.container {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.75rem;
+  padding: v.$space-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  :global(.dark) & {
+    background-color: var(--surface, #1f2937); // gray-800
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Selection counts (Req 2.3)
+// -----------------------------------------------------------------------------
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-4;
+}
+
+.count {
+  font-size: 0.875rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+
+  strong {
+    color: var(--foreground, #111827); // gray-900
+    font-weight: 600;
+  }
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+
+    strong {
+      color: var(--foreground, #f9fafb); // gray-50
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Empty state (Req 2.8)
+// -----------------------------------------------------------------------------
+
+.empty {
+  font-size: 0.875rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  margin: 0;
+  padding: v.$space-2 0;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Two-column checkbox groups
+// -----------------------------------------------------------------------------
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: v.$space-4;
+
+  @include m.tablet-and-up {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.group {
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.5rem;
+  padding: v.$space-4;
+  margin: 0;
+  min-width: 0;
+
+  :global(.dark) & {
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 v.$space-2;
+  color: var(--foreground, #111827); // gray-900
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+.groupEmpty {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  margin: 0;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.item {
+  margin: 0;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-2;
+  cursor: pointer;
+  padding: v.$space-1 0;
+}
+
+.checkbox {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.optionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.optionId {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+.optionMeta {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground, #6b7280); // gray-500
+  word-break: break-all;
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+// Field-name labels for withdraw rows: destination / destinationHash (Req 2.6).
+.fieldLabel {
+  font-weight: 600;
+  color: var(--foreground, #374151); // gray-700
+
+  :global(.dark) & {
+    color: var(--foreground, #d1d5db); // gray-300
+  }
+}
+
+// Monospace cells for identifiers, addresses, and hashes.
+.mono {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  word-break: break-all;
+}
+
+// -----------------------------------------------------------------------------
+// Partial-batch warning (Req 4.2 / 4.3)
+// -----------------------------------------------------------------------------
+
+.warning {
+  font-size: 0.875rem;
+  margin: 0;
+  padding: v.$space-2 v.$space-3;
+  border-radius: 0.5rem;
+  background-color: var(--banner-warning-bg, #{v.$banner-warning-bg});
+  color: var(--banner-warning-fg, #{v.$banner-warning-fg});
+  border: 1px solid var(--banner-warning-edge, #{v.$banner-warning-edge});
+}
+
+// -----------------------------------------------------------------------------
+// JSON payload preview (Req 2.4, 2.5)
+// -----------------------------------------------------------------------------
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.previewLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280); // gray-500
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+.json {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: v.$space-3;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  white-space: pre;
+  background-color: var(--surface-muted, #f3f4f6); // gray-100
+  color: var(--foreground, #111827); // gray-900
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+
+  :global(.dark) & {
+    background-color: var(--surface-muted, #111827); // gray-900
+    color: var(--foreground, #f9fafb); // gray-50
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}

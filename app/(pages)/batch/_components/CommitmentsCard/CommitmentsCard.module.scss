@@ -1,0 +1,205 @@
+// =============================================================================
+// Batch Screen (FE-06) — CommitmentsCard styles
+// -----------------------------------------------------------------------------
+// Styles for the CommitmentsCard component which renders the 4 commitment roots
+// as separate blocks (each with an explanation badge) plus the batch hash.
+//
+// Design tokens are referenced via `var(--token, $fallback)` so the card still
+// renders correctly in unit tests where the global stylesheet is absent. Dark
+// mode is handled through the class-based `:global(.dark)` overrides used
+// across the app.
+//
+// Requirements: 7.1, 7.3, 7.4, 7.6, 7.7, 7.8, 7.10
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// Monospace stack shared by hex values in this card.
+$_mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+  "DejaVu Sans Mono", monospace;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+
+.container {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.75rem;
+  padding: v.$space-6;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  :global(.dark) & {
+    background-color: var(--surface, #1f2937); // gray-800
+    border-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+  margin: 0;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Root blocks
+// -----------------------------------------------------------------------------
+
+.rootList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: v.$space-3;
+
+  @include m.tablet-and-up {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.rootBlock {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  padding: v.$space-4;
+
+  border: 1px solid var(--surface-border, #e5e7eb); // gray-200
+  border-radius: 0.5rem;
+  background-color: var(--code-surface, #f9fafb); // gray-50
+
+  :global(.dark) & {
+    border-color: var(--surface-border, #374151); // gray-700
+    background-color: var(--code-surface, #111827); // gray-900
+  }
+}
+
+// Missing root → red highlight (Req 7.6). Pairs with the text/aria indicator
+// so the state is never conveyed by color alone (Req 7.10).
+.rootBlockMissing {
+  border-color: var(--si-error, #{v.$si-error});
+  background-color: var(--banner-error-bg, #{v.$banner-error-bg});
+
+  :global(.dark) & {
+    border-color: var(--si-error, #{v.$si-error});
+    // Keep a dark-friendly red wash rather than the light banner tint.
+    background-color: var(--banner-error-bg, rgba(220, 38, 38, 0.15));
+  }
+}
+
+.rootHeader {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+.rootLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #111827); // gray-900
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}
+
+// Explanation badge — distinct copy per root (Req 7.3).
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--banner-info-fg, #{v.$banner-info-fg});
+  background-color: var(--banner-info-bg, #{v.$banner-info-bg});
+  border: 1px solid var(--banner-info-edge, #{v.$banner-info-edge});
+  border-radius: 0.375rem;
+  padding: v.$space-1 v.$space-2;
+
+  :global(.dark) & {
+    color: var(--banner-info-fg, #bfdbfe); // blue-200
+    background-color: var(--banner-info-bg, rgba(37, 99, 235, 0.18));
+    border-color: var(--banner-info-edge, rgba(147, 197, 253, 0.4));
+  }
+}
+
+// Clickable shortened root value (Req 7.7, 7.9).
+.rootValue {
+  align-self: flex-start;
+  font-family: $_mono;
+  font-size: 0.8125rem;
+  word-break: break-all;
+  text-align: left;
+
+  color: var(--color-accent, #{v.$si-active});
+  background: transparent;
+  border: none;
+  padding: v.$space-1 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// English text/aria indicator for a missing root (Req 7.10).
+.missingIndicator {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--si-error, #{v.$si-error});
+
+  :global(.dark) & {
+    color: var(--si-error, #fca5a5); // red-300
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Batch hash
+// -----------------------------------------------------------------------------
+
+.batchHashRow {
+  display: flex;
+  align-items: baseline;
+  gap: v.$space-2;
+  padding-top: v.$space-2;
+  border-top: 1px solid var(--surface-border, #f3f4f6); // gray-100
+
+  :global(.dark) & {
+    border-top-color: var(--surface-border, #374151); // gray-700
+  }
+}
+
+.batchHashLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280); // gray-500
+
+  :global(.dark) & {
+    color: var(--muted-foreground, #9ca3af); // gray-400
+  }
+}
+
+.batchHashValue {
+  font-family: $_mono;
+  font-size: 0.8125rem;
+  word-break: break-all;
+  color: var(--foreground, #111827); // gray-900
+  cursor: help;
+
+  :global(.dark) & {
+    color: var(--foreground, #f9fafb); // gray-50
+  }
+}

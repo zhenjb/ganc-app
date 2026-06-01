@@ -6,7 +6,7 @@ export const mockState: AppState = {
     "0xabc123def456abc123def456abc123def456abc123def456abc123def456abc1",
   balances: {
     userBalances: {
-      "cosmos1aliceaddressexample123456789/uusdc": "1000",
+      "cosmos1aliceaddressexample12345678901234567890/uusdc": "1000",
     },
     moduleAccountBalance: "60",
   },
