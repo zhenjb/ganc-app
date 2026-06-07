@@ -14,17 +14,17 @@ export function getNextCta(state: AppState): CtaResult | null {
   const { depositStatus, withdrawStatus, batchStatus, proofStatus } = state;
 
   // AC1: Deposit not started yet
-  if (depositStatus === "idle") {
+  if (depositStatus === "none") {
     return { label: "Start Deposit", href: "/deposit" };
   }
 
   // AC2: Deposit done, withdraw not started
-  if (depositStatus === "processed" && withdrawStatus === "idle") {
+  if (depositStatus === "processed" && withdrawStatus === "none") {
     return { label: "Create Withdraw Request", href: "/withdraw" };
   }
 
   // AC3: Withdraw pending, batch not started
-  if (withdrawStatus === "pending" && batchStatus === "idle") {
+  if (withdrawStatus === "pending" && batchStatus === "none") {
     return { label: "Build Batch", href: "/batch" };
   }
 

@@ -1,10 +1,11 @@
 // =============================================================================
 // Overview Screen (FE-03) — BalanceTable
 // -----------------------------------------------------------------------------
-// Displays user balances from the zkdex state and the module account balance.
+// Displays user balances from the zkdex state and the module account balances.
 //
 // Props:
-//   - balances: BalancesResponse — { userBalances, moduleAccountBalance }
+//   - userBalances: Record<string, string>          — keyed "{address}/{denom}"
+//   - moduleAccountBalance: Record<string, string>  — keyed by denom
 //
 // Key parsing rules for userBalances entries:
 //   - Keys are formatted as "address/denom" — split at the last "/"
@@ -14,22 +15,24 @@
 //
 // Empty state: when userBalances is {}, render "No users yet"
 //
-// Module account balance: always rendered with label "Module account balance"
-// and note "Funds locked in the zkdex module account". Shows "0 uusdc" when
-// value is "0" — never hidden.
+// Module account balance: one row per denom with the literal label
+// "Module account balance" and the note
+// "Funds locked in the zkdex module account". When the map is empty, render
+// a single row with "0 USDT" so the section is never hidden.
 //
-// All amount formatting goes through formatAmount() which uses BigInt internally.
-// On RangeError (invalid amount string), renders "—" for that entry.
+// All amount formatting goes through formatAmount() which uses BigInt
+// internally. On RangeError (invalid amount string), renders "—" for that
+// entry.
 //
 // Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7
 // =============================================================================
 
-import type { BalancesResponse } from "@/app/lib/interfaces/state";
 import { formatAmount } from "@/app/lib/services/format";
 import styles from "./BalanceTable.module.scss";
 
 export interface BalanceTableProps {
-  balances: BalancesResponse;
+  userBalances: Record<string, string>;
+  moduleAccountBalance: Record<string, string>;
 }
 
 /**
@@ -74,10 +77,20 @@ function safeFormatAmount(amount: string, denom: string): string {
   }
 }
 
-export function BalanceTable({ balances }: BalanceTableProps): React.JSX.Element {
-  const { userBalances, moduleAccountBalance } = balances;
+export function BalanceTable({
+  userBalances,
+  moduleAccountBalance,
+}: BalanceTableProps): React.JSX.Element {
   const userEntries = Object.entries(userBalances);
   const isEmpty = userEntries.length === 0;
+
+  // Module rows — one per denom present in the map. When empty, fall back to
+  // a single "0 USDT" row so the section is always rendered.
+  const moduleEntries = Object.entries(moduleAccountBalance);
+  const moduleRows: Array<{ denom: string; amount: string }> =
+    moduleEntries.length === 0
+      ? [{ denom: "USDT", amount: "0" }]
+      : moduleEntries.map(([denom, amount]) => ({ denom, amount }));
 
   return (
     <section className={styles.container}>
@@ -105,18 +118,20 @@ export function BalanceTable({ balances }: BalanceTableProps): React.JSX.Element
         </ul>
       )}
 
-      {/* Module account balance — always rendered */}
-      <div className={styles.moduleRow}>
-        <div className={styles.moduleLabel}>
-          <span className={styles.moduleName}>Module account balance</span>
-          <span className={styles.moduleNote}>
-            Funds locked in the zkdex module account
+      {/* Module account balances — one row per denom, always rendered */}
+      {moduleRows.map(({ denom, amount }) => (
+        <div key={denom} className={styles.moduleRow}>
+          <div className={styles.moduleLabel}>
+            <span className={styles.moduleName}>Module account balance</span>
+            <span className={styles.moduleNote}>
+              Funds locked in the zkdex module account
+            </span>
+          </div>
+          <span className={styles.moduleAmount}>
+            {safeFormatAmount(amount, denom)}
           </span>
         </div>
-        <span className={styles.moduleAmount}>
-          {safeFormatAmount(moduleAccountBalance, "uusdc")}
-        </span>
-      </div>
+      ))}
     </section>
   );
 }

@@ -24,7 +24,7 @@
 // Sub-components
 // --------------
 // `ModeBadge`       — reads `state.mode` and renders the literal `"Mock"` or
-//                     `"Real"` (Req 5.1, 5.2). Renders a skeleton while
+//                     `"Local"` (Req 5.1, 5.2). Renders a skeleton while
 //                     `loading && !state` (Req 5.5).
 // `StateRootBadge`  — reads `state.currentStateRoot`, renders the literal
 //                     label `"State root"` plus either `shortenHex(value, 6, 4)`
@@ -81,8 +81,8 @@ function ModeBadge({ state, loading }: ModeBadgeProps): React.JSX.Element | null
     return null;
   }
 
-  // Per Req 5.1 / 5.2 the literal text is exactly "Mock" or "Real".
-  const text = state.mode === "mock" ? "Mock" : "Real";
+  // Per Req 5.1 / 5.2 the literal text is exactly "Mock" or "Local".
+  const text = state.mode === "mock" ? "Mock" : "Local";
   const variantClass =
     state.mode === "mock" ? styles.badgeMock : styles.badgeReal;
 

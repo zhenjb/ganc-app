@@ -72,7 +72,7 @@ export function WithdrawRequestScreen({
   // Compute the available off-chain balance for the current destination/denom
   // pair, if it is present in the AppState balances map.
   const balanceKey = `${formState.destination}/${formState.denom}`;
-  const availableBalanceRaw = state.balances.userBalances[balanceKey];
+  const availableBalanceRaw = state.userBalances[balanceKey];
   const availableBalance =
     availableBalanceRaw !== undefined
       ? formatAmount(availableBalanceRaw, formState.denom)

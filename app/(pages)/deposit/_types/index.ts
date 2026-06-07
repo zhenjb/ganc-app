@@ -1,4 +1,5 @@
 import type { DepositRecord } from "@/app/lib/interfaces/deposit";
+import type { WalletConnection } from "@/app/lib/interfaces/wallet";
 
 /**
  * Form state for the deposit form.
@@ -35,4 +36,15 @@ export interface DepositHistoryEntry {
   deposit: DepositRecord;
   /** ISO 8601 timestamp of when the deposit was recorded client-side. */
   timestamp: string;
+}
+
+/**
+ * Session-only wallet connection state for the deposit form (FE-14).
+ * Never persisted to localStorage — reload forces a fresh Connect flow.
+ */
+export interface WalletState {
+  connection: WalletConnection | null;
+  connecting: boolean;
+  /** Normalized "Internal Server Error" or null. */
+  error: string | null;
 }

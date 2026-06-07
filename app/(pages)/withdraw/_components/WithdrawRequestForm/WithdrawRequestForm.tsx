@@ -116,7 +116,7 @@ export function WithdrawRequestForm({
           disabled={disabled}
           aria-label="Select denomination"
         >
-          <option value="uusdc">uusdc</option>
+          <option value="USDT">USDT</option>
         </select>
       </div>
 

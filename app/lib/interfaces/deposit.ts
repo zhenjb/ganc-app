@@ -31,3 +31,11 @@ export interface DepositInput {
 export interface DepositResponse {
   deposit: DepositRecord;
 }
+
+/**
+ * Response body for `GET /api/deposits/{depositId}` (FE-14).
+ * Used after a wallet-signed deposit has been indexed by the backend.
+ */
+export interface DepositLookupResponse {
+  deposit: DepositRecord;
+}

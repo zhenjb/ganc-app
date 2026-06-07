@@ -73,7 +73,7 @@ const validAmount = fc
 
 // Non-empty, non-whitespace denom.
 const validDenom = fc.oneof(
-  fc.constantFrom("uusdc", "uatom", "uosmo", "stake"),
+  fc.constantFrom("USDT", "uatom", "uosmo", "stake"),
   fc.string({ minLength: 1, maxLength: 12 }).filter((s) => s.trim() !== ""),
 );
 
@@ -186,7 +186,7 @@ describe("Feature: withdraw-request-screen, Property 7: Mock handler returns val
 
         // Side effects: mockState reflects the generated record.
         expect(mockState.withdrawStatus).toBe("pending");
-        expect(mockState.latestWithdraw).toEqual(record);
+        expect(mockState.latestWithdrawRequest).toEqual(record);
       }),
       { numRuns: 100 },
     );

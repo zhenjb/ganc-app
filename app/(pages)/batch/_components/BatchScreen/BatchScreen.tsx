@@ -7,7 +7,7 @@
 // (`BatchSessionContext`).
 //
 // Single code path: the screen runs the exact same logic regardless of
-// `state.mode` ("mock" | "real") — there is no branch that reads `mode`
+// `state.mode` ("mock" | "local") — there is no branch that reads `mode`
 // (Req 14.7).
 //
 // Responsibilities:
@@ -140,8 +140,8 @@ export function BatchScreen({
     [state.latestDeposit],
   );
   const availableWithdraws = useMemo(
-    () => selectAvailableWithdraws(state.latestWithdraw, NO_WITHDRAW_HISTORY),
-    [state.latestWithdraw],
+    () => selectAvailableWithdraws(state.latestWithdrawRequest, NO_WITHDRAW_HISTORY),
+    [state.latestWithdrawRequest],
   );
 
   // Resolve the FE records for the current selection. The tables read from the

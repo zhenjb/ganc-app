@@ -27,6 +27,7 @@ export function DepositResultCard({
   isMockMode,
 }: DepositResultCardProps): React.ReactElement {
   const txHashWarning = validateTxHash(deposit.txHash);
+  const isPending = deposit.id === "";
 
   return (
     <section className={styles.card} aria-label="Deposit result">
@@ -34,15 +35,23 @@ export function DepositResultCard({
         <span className={styles.mockLabel}>(mock) Simulated transaction</span>
       )}
 
+      {isPending && (
+        <span className={styles.pendingLabel} role="status">
+          Pending on-chain indexing
+        </span>
+      )}
+
       <dl className={styles.info}>
         <div className={styles.row}>
           <dt className={styles.label}>Tx Hash</dt>
           <dd className={styles.value}>{shortenHex(deposit.txHash)}</dd>
         </div>
-        <div className={styles.row}>
-          <dt className={styles.label}>ID</dt>
-          <dd className={styles.value}>{deposit.id}</dd>
-        </div>
+        {!isPending && (
+          <div className={styles.row}>
+            <dt className={styles.label}>ID</dt>
+            <dd className={styles.value}>{deposit.id}</dd>
+          </div>
+        )}
         <div className={styles.row}>
           <dt className={styles.label}>Amount</dt>
           <dd className={styles.value}>

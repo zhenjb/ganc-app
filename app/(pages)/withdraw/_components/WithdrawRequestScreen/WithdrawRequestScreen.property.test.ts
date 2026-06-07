@@ -18,7 +18,7 @@ const withdrawRecordArb: fc.Arbitrary<WithdrawRecord> = fc.record({
     .hexaString({ minLength: 64, maxLength: 64 })
     .map((h) => `0x${h}` as HexString),
   amount: fc.nat({ max: 1000000 }).map((n) => String(n + 1)),
-  denom: fc.constant("uusdc"),
+  denom: fc.constant("USDT"),
   nullifier: fc
     .hexaString({ minLength: 64, maxLength: 64 })
     .map((h) => `0x${h}` as HexString),

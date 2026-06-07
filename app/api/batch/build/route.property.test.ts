@@ -180,11 +180,12 @@ const hexRootArb = fc
 const appStateArb: fc.Arbitrary<AppState> = hexRootArb.map((root) => ({
   mode: "mock",
   currentStateRoot: root,
-  balances: { userBalances: {}, moduleAccountBalance: "0" },
-  depositStatus: "idle",
-  withdrawStatus: "idle",
+  userBalances: {},
+  moduleAccountBalance: {},
+  depositStatus: "none",
+  withdrawStatus: "none",
   proofStatus: "idle",
-  batchStatus: "idle",
+  batchStatus: "none",
 }));
 
 describe("buildMockBatchResponse (Property 15)", () => {

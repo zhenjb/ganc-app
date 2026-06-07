@@ -6,7 +6,7 @@
 //
 // Props:
 //   - currentStateRoot: HexString | null — the raw hex string to display/copy
-//   - mode: Mode — "mock" | "real", controls the badge label
+//   - mode: Mode — "mock" | "local", controls the badge label
 //
 // Copy behaviour:
 //   - Clipboard API available: writes full hex, shows toast for 1500ms
@@ -95,7 +95,7 @@ export function RootCard({
             mode === "mock" ? styles["modeBadge--mock"] : styles["modeBadge--real"]
           }`}
         >
-          {mode === "mock" ? "Mock" : "Real"}
+          {mode === "mock" ? "Mock" : "Local"}
         </span>
       </div>
 

@@ -3,6 +3,7 @@ import type { AppState } from "@/app/lib/interfaces/state";
 import type {
   DepositInput,
   DepositResponse,
+  DepositLookupResponse,
 } from "@/app/lib/interfaces/deposit";
 import type {
   WithdrawRequestInput,
@@ -39,6 +40,20 @@ export function postDeposit(
     body: JSON.stringify(input),
     ...opts,
   });
+}
+
+/**
+ * GET /api/deposits/{depositId} — fetch an indexed deposit by id.
+ * Used by the wallet-signed flow (FE-14) after broadcasting a real MsgDeposit.
+ */
+export function getDepositById(
+  depositId: string,
+  opts?: CallOptions
+): Promise<DepositLookupResponse> {
+  return request<DepositLookupResponse>(
+    `/api/deposits/${encodeURIComponent(depositId)}`,
+    { method: "GET", ...opts }
+  );
 }
 
 export function postWithdrawRequest(

@@ -1,14 +1,16 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { postDeposit } from "@/app/lib/services/api";
+import { getDepositById, postDeposit } from "@/app/lib/services/api";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
 import type { DepositRecord } from "@/app/lib/interfaces/deposit";
+import type { WalletConnection } from "@/app/lib/interfaces/wallet";
 import type {
   DepositFormState,
   DepositHistoryEntry,
   ValidationErrors,
   ValidationWarnings,
+  WalletState,
 } from "@/app/(pages)/deposit/_types";
 import {
   validateDepositor,
@@ -26,8 +28,12 @@ export interface UseDepositFormReturn {
   balanceSnapshot: { userBalance: string; moduleBalance: string } | null;
   refreshError: boolean;
   history: DepositHistoryEntry[];
+  wallet: WalletState;
+  isRealMode: boolean;
   setField: (field: keyof DepositFormState, value: string) => void;
   handleSubmit: () => Promise<void>;
+  handleConnectWallet: () => Promise<void>;
+  handleDisconnectWallet: () => void;
 }
 
 /**
@@ -45,15 +51,18 @@ function parseDefaultDepositor(
 
 /**
  * Custom hook managing the entire deposit form lifecycle:
- * state initialization, field validation, submission, balance diffing, and history.
+ * mode-aware submission (mock POST vs wallet-signed broadcast), validation,
+ * balance diffing, history, and wallet connection.
  */
 export function useDepositForm(): UseDepositFormReturn {
   const { state, refresh } = useAppStateContext();
 
-  // Form state — initialized with defaults derived from AppState
+  const isRealMode = state?.mode === "local";
+
+  // Form state — initialized with defaults derived from AppState.
   const [formState, setFormState] = useState<DepositFormState>(() => ({
-    depositor: parseDefaultDepositor(state?.balances.userBalances),
-    denom: "uusdc",
+    depositor: parseDefaultDepositor(state?.userBalances),
+    denom: "USDT",
     amount: "",
   }));
 
@@ -76,13 +85,24 @@ export function useDepositForm(): UseDepositFormReturn {
   const [refreshError, setRefreshError] = useState(false);
   const [history, setHistory] = useState<DepositHistoryEntry[]>([]);
 
+  // Session-only wallet connection state. Never persisted to localStorage.
+  const [wallet, setWallet] = useState<WalletState>({
+    connection: null,
+    connecting: false,
+    error: null,
+  });
+
   /**
    * Update a single form field and run validation immediately.
+   * In real mode the depositor field is derived from the wallet address and
+   * cannot be edited directly — we silently ignore depositor writes there.
    */
   const setField = useCallback(
     (field: keyof DepositFormState, value: string) => {
+      if (field === "depositor" && isRealMode) {
+        return;
+      }
       setFormState((prev) => ({ ...prev, [field]: value }));
-      // Clear submit error when user edits the form
       setSubmitError(null);
 
       if (field === "depositor") {
@@ -96,42 +116,78 @@ export function useDepositForm(): UseDepositFormReturn {
         const amountError = value === "" ? null : validateAmount(value);
         setErrors((prev) => ({ ...prev, amount: amountError }));
 
-        // Only compute warning if there is no error and amount is non-empty
         if (!amountError && value !== "" && state) {
           const balanceKey = `${formState.depositor}/${formState.denom}`;
           const currentBalance =
-            state.balances.userBalances[balanceKey] ?? "0";
-          setWarnings({ amount: validateAmountWarning(value, currentBalance) });
+            state.userBalances[balanceKey] ?? "0";
+          setWarnings({
+            amount: validateAmountWarning(value, currentBalance),
+          });
         } else {
           setWarnings({ amount: null });
         }
       }
 
-      // Re-validate amount warning when depositor or denom changes (balance key changes)
-      if ((field === "depositor" || field === "denom") && formState.amount !== "") {
-        const newDepositor = field === "depositor" ? value : formState.depositor;
+      if (
+        (field === "depositor" || field === "denom") &&
+        formState.amount !== ""
+      ) {
+        const newDepositor =
+          field === "depositor" ? value : formState.depositor;
         const newDenom = field === "denom" ? value : formState.denom;
         const amountError = validateAmount(formState.amount);
         if (!amountError && state) {
           const balanceKey = `${newDepositor}/${newDenom}`;
           const currentBalance =
-            state.balances.userBalances[balanceKey] ?? "0";
+            state.userBalances[balanceKey] ?? "0";
           setWarnings({
             amount: validateAmountWarning(formState.amount, currentBalance),
           });
         }
       }
     },
-    [formState.depositor, formState.denom, formState.amount, state]
+    [
+      formState.depositor,
+      formState.denom,
+      formState.amount,
+      isRealMode,
+      state,
+    ]
   );
 
   /**
-   * Submit the deposit:
-   * 1. Snapshot current balances
-   * 2. Call postDeposit API
-   * 3. On success: set result, refresh state, add to history
-   * 4. On refresh failure: set refreshError (result card still shows)
-   * 5. On API failure: set submitError, keep form unchanged
+   * Connect to the browser wallet (Keplr/Leap) and pin its address into the
+   * depositor field. All errors are normalized to "Internal Server Error".
+   * Dynamically imported so wallet code never ships in mock-mode bundles.
+   */
+  const handleConnectWallet = useCallback(async (): Promise<WalletConnection | null> => {
+    setWallet({ connection: null, connecting: true, error: null });
+    try {
+      const { connectWallet } = await import("@/app/lib/services/wallet");
+      const connection = await connectWallet();
+      setWallet({ connection, connecting: false, error: null });
+      setFormState((prev) => ({ ...prev, depositor: connection.address }));
+      setErrors((prev) => ({ ...prev, depositor: null }));
+      return connection;
+    } catch {
+      setWallet({
+        connection: null,
+        connecting: false,
+        error: "Internal Server Error",
+      });
+      return null;
+    }
+  }, []) as unknown as () => Promise<void>;
+
+  const handleDisconnectWallet = useCallback(() => {
+    setWallet({ connection: null, connecting: false, error: null });
+    setFormState((prev) => ({ ...prev, depositor: "" }));
+  }, []);
+
+  /**
+   * Submit the deposit. Branches on mode:
+   *  - mock: POST /api/deposit (existing behavior).
+   *  - real: wallet sign + broadcast MsgDeposit, then GET /api/deposits/{id}.
    */
   const handleSubmit = useCallback(async () => {
     if (!state) return;
@@ -140,48 +196,91 @@ export function useDepositForm(): UseDepositFormReturn {
     setSubmitError(null);
     setRefreshError(false);
 
-    // Snapshot balances before the API call
     const balanceKey = `${formState.depositor}/${formState.denom}`;
-    const userBalance = state.balances.userBalances[balanceKey] ?? "0";
-    const moduleBalance = state.balances.moduleAccountBalance;
+    const userBalance = state.userBalances[balanceKey] ?? "0";
+    const moduleBalance = state.moduleAccountBalance[formState.denom] ?? "0";
     const snapshot = { userBalance, moduleBalance };
     setBalanceSnapshot(snapshot);
 
     try {
-      const response = await postDeposit({
-        depositor: formState.depositor,
-        denom: formState.denom,
-        amount: formState.amount,
-      });
+      let deposit: DepositRecord;
 
-      // Success: set result
-      setLastResult(response.deposit);
+      if (state.mode === "local") {
+        // ---- Wallet-signed real flow ---------------------------------------
+        const { broadcastDeposit } = await import(
+          "@/app/lib/services/wallet"
+        );
 
-      // Refresh state to get updated balances
+        const result = await broadcastDeposit({
+          creator: formState.depositor,
+          denom: formState.denom,
+          amount: formState.amount,
+        });
+
+        if (result.depositId) {
+          // Indexed already — fetch the canonical record.
+          try {
+            const lookup = await getDepositById(result.depositId);
+            deposit = lookup.deposit;
+          } catch (lookupErr) {
+            console.error("[FE-14] getDepositById failed", lookupErr);
+            // Fall back to the partial record so the user still sees txHash.
+            deposit = {
+              id: result.depositId,
+              depositor: formState.depositor,
+              amount: formState.amount,
+              denom: formState.denom,
+              txHash: result.txHash,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        } else {
+          // Tx broadcast OK but EventDeposit not yet indexed.
+          deposit = {
+            id: "",
+            depositor: formState.depositor,
+            amount: formState.amount,
+            denom: formState.denom,
+            txHash: result.txHash,
+            createdAt: new Date().toISOString(),
+          };
+        }
+      } else {
+        // ---- Mock flow (dev / offline) -------------------------------------
+        const response = await postDeposit({
+          depositor: formState.depositor,
+          denom: formState.denom,
+          amount: formState.amount,
+        });
+        deposit = response.deposit;
+      }
+
+      setLastResult(deposit);
+
+      // Always refresh state (real or mock).
       try {
         await refresh();
       } catch {
-        // Refresh failed — result card still shows, but balance diff shows error
         setRefreshError(true);
       }
 
-      // Add to session history
       setHistory((prev) => [
-        {
-          deposit: response.deposit,
-          timestamp: new Date().toISOString(),
-        },
+        { deposit, timestamp: new Date().toISOString() },
         ...prev,
       ]);
     } catch {
-      // API error: show generic error, keep form unchanged
       setSubmitError("Internal Server Error");
-      // Reset snapshot since deposit didn't go through
       setBalanceSnapshot(null);
     } finally {
       setSubmitting(false);
     }
-  }, [state, formState.depositor, formState.denom, formState.amount, refresh]);
+  }, [
+    state,
+    formState.depositor,
+    formState.denom,
+    formState.amount,
+    refresh,
+  ]);
 
   return {
     formState,
@@ -193,7 +292,11 @@ export function useDepositForm(): UseDepositFormReturn {
     balanceSnapshot,
     refreshError,
     history,
+    wallet,
+    isRealMode,
     setField,
     handleSubmit,
+    handleConnectWallet,
+    handleDisconnectWallet,
   };
 }

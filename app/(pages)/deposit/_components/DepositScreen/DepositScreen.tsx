@@ -1,18 +1,16 @@
 // =============================================================================
-// Deposit Screen (FE-04) — DepositScreen
+// Deposit Screen (FE-04 / FE-14) — DepositScreen
 // -----------------------------------------------------------------------------
 // Layout orchestrator that composes all deposit sub-components:
 //   1. Explanation banner (always visible)
-//   2. DepositForm (controlled form)
-//   3. DepositResultCard (conditional — shown after successful deposit)
-//   4. BalanceDiff (conditional — shown after successful deposit)
+//   2. DepositForm (controlled form + wallet panel in real mode)
+//   3. DepositResultCard (conditional — shown after a successful deposit)
+//   4. BalanceDiff (conditional — shown after a successful deposit)
 //   5. DepositHistoryList (always visible)
 //
 // Wires the useDepositForm hook and passes props to child components.
-// The "after" balance values come from the current state prop (refreshed after
+// "After" balance values come from the current state prop (refreshed after
 // deposit) while "before" values come from the hook's balanceSnapshot.
-//
-// Requirements: 3.3, 3.4, 8.1
 // =============================================================================
 
 "use client";
@@ -50,18 +48,23 @@ export function DepositScreen({
     balanceSnapshot,
     refreshError,
     history,
+    wallet,
+    isRealMode,
     setField,
     handleSubmit,
+    handleConnectWallet,
+    handleDisconnectWallet,
   } = useDepositForm();
 
-  // Compute "after" balance values from the current state (post-refresh)
+  // Compute "after" balance values from the current state (post-refresh).
   const afterBalance = lastResult
     ? {
         userBalance:
-          state.balances.userBalances[
+          state.userBalances[
             `${formState.depositor}/${formState.denom}`
           ] ?? "0",
-        moduleBalance: state.balances.moduleAccountBalance,
+        moduleBalance:
+          state.moduleAccountBalance[formState.denom] ?? "0",
       }
     : null;
 
@@ -73,7 +76,7 @@ export function DepositScreen({
         currentStateRoot does not change until a proof is submitted and accepted.
       </p>
 
-      {/* 2. Deposit form */}
+      {/* 2. Deposit form (with wallet panel in real mode) */}
       <DepositForm
         formState={formState}
         errors={errors}
@@ -83,6 +86,10 @@ export function DepositScreen({
         onFieldChange={setField}
         onSubmit={handleSubmit}
         submitError={submitError}
+        isRealMode={isRealMode}
+        wallet={wallet}
+        onConnectWallet={handleConnectWallet}
+        onDisconnectWallet={handleDisconnectWallet}
       />
 
       {/* 3. Result card — shown after successful deposit */}

@@ -51,7 +51,7 @@ export function useOverviewPolling(
       refreshRef.current();
     };
 
-    const intervalId = setInterval(tick, 5000);
+    const intervalId = setInterval(tick, 0);
 
     const handleVisibilityChange = (): void => {
       // Nothing to do here — the tick guard above already checks
