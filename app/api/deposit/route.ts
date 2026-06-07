@@ -72,7 +72,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   // Check balance sufficiency
   const balanceKey = `${depositor}/${denom}`;
-  const currentBalanceStr = mockState.balances.userBalances[balanceKey] ?? "0";
+  const currentBalanceStr = mockState.userBalances[balanceKey] ?? "0";
   const currentBalance = BigInt(currentBalanceStr);
 
   if (amountBigInt > currentBalance) {
@@ -82,10 +82,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  // Mutate mockState
-  mockState.balances.userBalances[balanceKey] = (currentBalance - amountBigInt).toString();
-  mockState.balances.moduleAccountBalance = (
-    BigInt(mockState.balances.moduleAccountBalance) + amountBigInt
+  // Mutate mockState — module balance is a Record<denom, string>, so we
+  // accumulate the deposited amount under the matching denom key only.
+  mockState.userBalances[balanceKey] = (currentBalance - amountBigInt).toString();
+  const currentModuleStr = mockState.moduleAccountBalance[denom] ?? "0";
+  mockState.moduleAccountBalance[denom] = (
+    BigInt(currentModuleStr) + amountBigInt
   ).toString();
   mockState.depositStatus = "processed";
 

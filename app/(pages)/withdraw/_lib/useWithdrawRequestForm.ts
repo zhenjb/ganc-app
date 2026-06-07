@@ -59,8 +59,8 @@ export function useWithdrawRequestForm(): UseWithdrawRequestFormReturn {
 
   // Form state — initialized with defaults derived from AppState.
   const [formState, setFormState] = useState<WithdrawRequestFormState>(() => ({
-    destination: parseDefaultDestination(state?.balances.userBalances),
-    denom: "uusdc",
+    destination: parseDefaultDestination(state?.userBalances),
+    denom: "USDT",
     amount: "",
   }));
 
@@ -93,7 +93,7 @@ export function useWithdrawRequestForm(): UseWithdrawRequestFormReturn {
     (destination: string, denom: string): string => {
       if (!state) return "0";
       const balanceKey = `${destination}/${denom}`;
-      return state.balances.userBalances[balanceKey] ?? "0";
+      return state.userBalances[balanceKey] ?? "0";
     },
     [state]
   );
@@ -183,7 +183,7 @@ export function useWithdrawRequestForm(): UseWithdrawRequestFormReturn {
       // the in-memory list with the persisted result.
       setHistory(appendToHistory(record));
 
-      // Refresh shared state so withdrawStatus / latestWithdraw update.
+      // Refresh shared state so withdrawStatus / latestWithdrawRequest update.
       try {
         await refresh();
       } catch {

@@ -1,20 +1,22 @@
 import type { AppState } from "@/app/lib/interfaces/state";
 
 export const mockState: AppState = {
-  mode: "mock",
-  currentStateRoot:
-    "0xabc123def456abc123def456abc123def456abc123def456abc123def456abc1",
-  balances: {
-    userBalances: {
-      "cosmos1aliceaddressexample12345678901234567890/uusdc": "1000",
-    },
-    moduleAccountBalance: "60",
+  mode: "local",
+  currentStateRoot: "0xrootA",
+  userBalances: {
+    "cosmos1alice/USDT": "1000",
   },
-  depositStatus: "processed",
-  withdrawStatus: "idle",
-  proofStatus: "idle",
-  batchStatus: "idle",
+  moduleAccountBalance: {
+    USDT: "0",
+  },
   latestDeposit: null,
-  latestWithdraw: null,
-  batchCommitments: null,
+  latestWithdrawRequest: null,
+  latestSettlement: null,
+  latestBatchCommitments: null,
+  latestProof: null,
+  latestWithdrawRecords: null,
+  proofStatus: "idle",
+  depositStatus: "none",
+  withdrawStatus: "none",
+  batchStatus: "none",
 };

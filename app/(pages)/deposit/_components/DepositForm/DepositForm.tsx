@@ -1,21 +1,21 @@
 // =============================================================================
-// Deposit Screen (FE-04) — DepositForm
+// Deposit Screen (FE-04 / FE-14) — DepositForm
 // -----------------------------------------------------------------------------
-// Controlled presentational form with 3 fields: Depositor (text), Denom
-// (select), Amount (text). Displays inline validation errors/warnings, a
-// loading indicator when submitting, and an inline submit error message.
+// Controlled presentational form. In real mode (FE-14) the depositor field is
+// read-only and derived from the connected wallet; a Connect Wallet panel is
+// shown above the form. In mock mode (FE-04) the depositor remains editable.
 //
-// Amount values are displayed with thousand separators (display only) — the
-// raw string value is passed to the parent via onFieldChange.
-//
-// Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.5, 3.2, 3.5, 6.1, 6.2, 9.1, 9.2
+// Amount values are displayed with thousand separators (display only); the raw
+// string value flows back to the parent via onFieldChange.
 // =============================================================================
 
 import type {
   DepositFormState,
   ValidationErrors,
   ValidationWarnings,
+  WalletState,
 } from "@/app/(pages)/deposit/_types";
+import { shortenHex } from "@/app/lib/services/format";
 import styles from "./DepositForm.module.scss";
 
 export interface DepositFormProps {
@@ -27,34 +27,42 @@ export interface DepositFormProps {
   onFieldChange: (field: keyof DepositFormState, value: string) => void;
   onSubmit: () => void;
   submitError: string | null;
+  /** When true, depositor is wallet-derived and the Connect panel renders. */
+  isRealMode: boolean;
+  wallet: WalletState;
+  onConnectWallet: () => void;
+  onDisconnectWallet: () => void;
 }
 
 /**
- * Formats a numeric string with thousand separators for display.
+ * Format a numeric string with thousand separators for display.
  * Returns empty string for non-numeric or empty input.
  */
 function formatWithThousandSeparators(value: string): string {
   if (!value) return "";
-  // Only format if the value is a valid integer (digits only)
   if (!/^\d+$/.test(value)) return "";
   return BigInt(value).toLocaleString("en-US");
 }
 
 /**
- * Determines whether the submit button should be disabled.
+ * Decide whether the submit button should be disabled.
+ * In real mode, an unconnected wallet also disables submit.
  */
 function isSubmitDisabled(
   submitting: boolean,
   disabled: boolean,
   errors: ValidationErrors,
-  amount: string
+  amount: string,
+  isRealMode: boolean,
+  walletConnected: boolean
 ): boolean {
   return (
     submitting ||
     disabled ||
     errors.depositor !== null ||
     errors.amount !== null ||
-    amount === ""
+    amount === "" ||
+    (isRealMode && !walletConnected)
   );
 }
 
@@ -67,6 +75,10 @@ export function DepositForm({
   onFieldChange,
   onSubmit,
   submitError,
+  isRealMode,
+  wallet,
+  onConnectWallet,
+  onDisconnectWallet,
 }: DepositFormProps): React.JSX.Element {
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,11 +86,14 @@ export function DepositForm({
   };
 
   const formattedAmount = formatWithThousandSeparators(formState.amount);
+  const walletConnected = wallet.connection !== null;
   const submitDisabled = isSubmitDisabled(
     submitting,
     disabled,
     errors,
-    formState.amount
+    formState.amount,
+    isRealMode,
+    walletConnected
   );
 
   return (
@@ -88,6 +103,54 @@ export function DepositForm({
       aria-label="Deposit form"
       noValidate
     >
+      {/* Wallet panel — real mode only */}
+      {isRealMode && (
+        <div className={styles.walletPanel} role="region" aria-label="Wallet connection">
+          {walletConnected ? (
+            <div className={styles.walletConnected}>
+              <span className={styles.walletProvider}>
+                {wallet.connection?.provider === "leap" ? "Leap" : "Keplr"}
+              </span>
+              <span className={styles.walletAddress}>
+                {shortenHex(wallet.connection?.address ?? "", 8, 6)}
+              </span>
+              <button
+                type="button"
+                className={styles.walletDisconnect}
+                onClick={onDisconnectWallet}
+                disabled={submitting}
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <div className={styles.walletDisconnected}>
+              <p className={styles.walletHelp}>
+                Connect Keplr or Leap. Make sure your wallet has fee and deposit
+                denom available.
+              </p>
+              <button
+                type="button"
+                className={styles.walletConnect}
+                onClick={onConnectWallet}
+                disabled={wallet.connecting || submitting}
+                aria-busy={wallet.connecting}
+              >
+                {wallet.connecting && (
+                  <span className={styles.spinner} aria-hidden="true" />
+                )}
+                {wallet.connecting ? "Connecting…" : "Connect Wallet"}
+              </button>
+              {wallet.error && (
+                <p className={styles.submitError} role="alert">
+                  {wallet.error}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Depositor field */}
       <div className={styles.fieldGroup}>
         <label htmlFor="deposit-depositor" className={styles.label}>
@@ -99,8 +162,9 @@ export function DepositForm({
           className={`${styles.input}${errors.depositor ? ` ${styles.inputError}` : ""}`}
           value={formState.depositor}
           onChange={(e) => onFieldChange("depositor", e.target.value)}
-          disabled={disabled}
-          placeholder="cosmos1..."
+          disabled={disabled || isRealMode}
+          readOnly={isRealMode}
+          placeholder={isRealMode ? "Connect wallet to fill" : "cosmos1..."}
           aria-invalid={errors.depositor !== null}
           aria-describedby={
             errors.depositor ? "deposit-depositor-error" : undefined
@@ -130,7 +194,7 @@ export function DepositForm({
           disabled={disabled}
           aria-label="Select denomination"
         >
-          <option value="uusdc">uusdc</option>
+          <option value="USDT">USDT</option>
         </select>
       </div>
 

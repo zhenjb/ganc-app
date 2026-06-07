@@ -10,8 +10,8 @@ import type { BatchBuildResponse } from "@/app/lib/interfaces/batch";
  *
  * A valid POST must mutate the shared in-memory `mockState` so that
  * `batchStatus === "pending"`, `proofStatus === "idle"`, and
- * `batchCommitments` deep-equals the `commitments` object returned in the
- * same BatchBuildResponse (Req 13.7). This is the backing state that
+ * `latestBatchCommitments` deep-equals the `commitments` object returned in
+ * the same BatchBuildResponse (Req 13.7). This is the backing state that
  * `refresh()` / GET /api/state surfaces to the UI (Req 11.2).
  *
  * Note: NODE_ENV is "test" under Vitest, so the production 404 guard in the
@@ -44,7 +44,7 @@ describe("POST /api/batch/build — mockState mutation", () => {
     expect(mockState.batchStatus).toBe("pending");
     expect(mockState.proofStatus).toBe("idle");
 
-    // batchCommitments deep-equals the commitments from the same response.
-    expect(mockState.batchCommitments).toEqual(body.commitments);
+    // latestBatchCommitments deep-equals the commitments from the same response.
+    expect(mockState.latestBatchCommitments).toEqual(body.commitments);
   });
 });

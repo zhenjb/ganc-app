@@ -13,7 +13,7 @@
 //     Col 2: WithdrawCardContent
 //     Col 3: BatchCardContent
 //
-// Special case: when mode === "real" and all latest* fields are null,
+// Special case: when mode === "local" and all latest* fields are null,
 // renders a syncing hint above the Latest Events row.
 //
 // Requirements: 3.1, 9.2, 9.3, 9.5, 10.1
@@ -49,12 +49,12 @@ export function OverviewScreen({
   inFlight: _inFlight,
 }: OverviewScreenProps): React.JSX.Element {
   // Determine whether to show the "indexer syncing" hint.
-  // Condition: mode is "real" AND all latest* fields are null/undefined.
+  // Condition: mode is "local" AND all latest* fields are null/undefined.
   const isRealWithNoData =
-    state.mode === "real" &&
+    state.mode === "local" &&
     (state.latestDeposit == null) &&
-    (state.latestWithdraw == null) &&
-    (state.batchCommitments == null);
+    (state.latestWithdrawRequest == null) &&
+    (state.latestBatchCommitments == null);
 
   return (
     <div className={styles.screen}>
@@ -67,7 +67,10 @@ export function OverviewScreen({
             currentStateRoot={state.currentStateRoot}
             mode={state.mode}
           />
-          <BalanceTable balances={state.balances} />
+          <BalanceTable
+            userBalances={state.userBalances}
+            moduleAccountBalance={state.moduleAccountBalance}
+          />
         </div>
 
         {/* Col 2: Status Panel + CTA */}
@@ -94,8 +97,8 @@ export function OverviewScreen({
       )}
       <div className="flex flex-col gap-6">
         <DepositCardContent latestDeposit={state.latestDeposit} />
-        <WithdrawCardContent latestWithdraw={state.latestWithdraw} />
-        <BatchCardContent batchCommitments={state.batchCommitments} />
+        <WithdrawCardContent latestWithdraw={state.latestWithdrawRequest} />
+        <BatchCardContent batchCommitments={state.latestBatchCommitments} />
       </div>
 
       {/* Reference strip — static, always visible */}

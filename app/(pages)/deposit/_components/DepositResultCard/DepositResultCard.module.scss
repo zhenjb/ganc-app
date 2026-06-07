@@ -99,3 +99,22 @@
     border-color: #a16207; // yellow-700
   }
 }
+
+.pendingLabel {
+  display: inline-block;
+  align-self: flex-start;
+  padding: v.$space-1 v.$space-2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: #1e40af; // blue-800
+  background: #dbeafe; // blue-100
+  border: 1px solid #93c5fd; // blue-300
+  border-radius: 0.25rem;
+
+  :global(.dark) & {
+    color: #bfdbfe; // blue-200
+    background: #1e3a8a; // blue-900
+    border-color: #1d4ed8; // blue-700
+  }
+}

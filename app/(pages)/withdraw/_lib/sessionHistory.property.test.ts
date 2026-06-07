@@ -63,7 +63,7 @@ const withdrawRecord: fc.Arbitrary<WithdrawRecord> = fc
     destination: fc.string({ minLength: 1, maxLength: 60 }),
     destinationHash: hexString,
     amount: amountString,
-    denom: fc.constantFrom("uusdc", "uatom", "uosmo", "stake"),
+    denom: fc.constantFrom("USDT", "uatom", "uosmo", "stake"),
     nullifier: hexString,
     status: fc.constantFrom(...WITHDRAW_STATUSES),
     createdAt: isoTimestamp,

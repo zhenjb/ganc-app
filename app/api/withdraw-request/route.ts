@@ -93,7 +93,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   // Mutate mockState
   mockState.withdrawStatus = "pending";
-  mockState.latestWithdraw = record;
+  mockState.latestWithdrawRequest = record;
 
   const response: WithdrawRequestResponse = { request: record };
   return NextResponse.json(response, { status: 200 });

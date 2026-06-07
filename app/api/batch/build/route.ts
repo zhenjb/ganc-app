@@ -151,7 +151,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   // Mutate mockState to reflect the new batch lifecycle.
   mockState.batchStatus = "pending";
   mockState.proofStatus = "idle";
-  mockState.batchCommitments = response.commitments;
+  mockState.latestBatchCommitments = response.commitments;
 
   return NextResponse.json(response, { status: 200 });
 }

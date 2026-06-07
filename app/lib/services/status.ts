@@ -15,6 +15,8 @@ export type AnyStatus =
 
 export function statusLabel(status: AnyStatus): string {
   switch (status) {
+    case "none":
+      return "None";
     case "idle":
       return "Idle";
     case "pending":
@@ -40,6 +42,8 @@ export function statusLabel(status: AnyStatus): string {
 
 export function statusTone(status: AnyStatus): StatusTone {
   switch (status) {
+    case "none":
+      return "muted";
     case "idle":
       return "muted";
     case "pending":

@@ -1,19 +1,36 @@
 import type { DepositRecord } from "./deposit";
 import type { WithdrawRecord } from "./withdraw";
-import type { BatchCommitments } from "./batch";
+import type { BatchCommitments, SettlementUpdate } from "./batch";
+import type { ProofBundle } from "./proof";
 
-export type Mode = "mock" | "real";
+/**
+ * Backend operating mode reported by `GET /api/state`.
+ *
+ * `"local"` — in-process / dev backend (was previously `"real"`).
+ * `"mock"`  — frontend-only mock backend served by the route handlers in
+ *             `app/api/*` while the real backend is offline.
+ */
+export type Mode = "mock" | "local";
 
-export type DepositStatus = "idle" | "pending" | "processed" | "rejected";
+/**
+ * `"none"` is the resting state used by the backend when no transaction of
+ * the given kind has been issued yet (Req 6.x). The other variants mirror
+ * the on-chain lifecycle.
+ */
+export type DepositStatus =
+  | "none"
+  | "pending"
+  | "processed"
+  | "rejected";
 export type WithdrawStatus =
-  | "idle"
+  | "none"
   | "pending"
   | "processed"
   | "claimed"
   | "rejected";
 export type ProofStatus = "idle" | "pending" | "generated" | "rejected";
 export type BatchStatus =
-  | "idle"
+  | "none"
   | "pending"
   | "submitted"
   | "settled"
@@ -27,17 +44,14 @@ export type BatchStatus =
  */
 export type HexString = string;
 
-export interface BalancesResponse {
-  /** Map of user address → amount (decimal string). */
-  userBalances: Record<string, string>;
-  /** Module account total (decimal string). */
-  moduleAccountBalance: string;
-}
-
 export interface AppState {
   mode: Mode;
   currentStateRoot: HexString | null;
-  balances: BalancesResponse;
+
+  /** Map of "{address}/{denom}" → amount (decimal string, BigInt-safe). */
+  userBalances: Record<string, string>;
+  /** Module account totals, keyed by denom (decimal string, BigInt-safe). */
+  moduleAccountBalance: Record<string, string>;
 
   depositStatus: DepositStatus;
   withdrawStatus: WithdrawStatus;
@@ -45,6 +59,9 @@ export interface AppState {
   batchStatus: BatchStatus;
 
   latestDeposit?: DepositRecord | null;
-  latestWithdraw?: WithdrawRecord | null;
-  batchCommitments?: BatchCommitments | null;
+  latestWithdrawRequest?: WithdrawRecord | null;
+  latestSettlement?: SettlementUpdate | null;
+  latestBatchCommitments?: BatchCommitments | null;
+  latestProof?: ProofBundle | null;
+  latestWithdrawRecords?: WithdrawRecord | null;
 }
