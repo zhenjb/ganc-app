@@ -78,34 +78,35 @@ function applyThemeToDocument(theme: ThemeMode): void {
  * by React after hydration without flicker.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize with THEME_DEFAULT so server and first client render match.
-  // The no-flash script already applied the correct class to <html>, so
-  // there's no visual flash even if localStorage has "dark".
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    // On the client, read localStorage immediately during initialization.
-    // This is safe because the no-flash script already set the correct
-    // class on <html>, so the visual state is already correct.
-    if (typeof window === "undefined") {
-      return THEME_DEFAULT;
-    }
-    return readPersistedTheme();
-  });
+  // Always initialize with THEME_DEFAULT so server and first client render
+  // produce identical output (avoids hydration mismatch). The no-flash
+  // script already set the correct class on <html>, so there's no visual
+  // flash even when localStorage holds "dark".
+  const [theme, setThemeState] = useState<ThemeMode>(THEME_DEFAULT);
 
-  // Track whether we've completed the first render to skip redundant persistence.
-  const isInitialRender = useRef(true);
+  // Track whether we've synced from localStorage after hydration.
+  const hasSynced = useRef(false);
+
+  // After hydration, sync state from localStorage so the React tree
+  // matches what the no-flash script already applied visually.
+  useEffect(() => {
+    if (!hasSynced.current) {
+      hasSynced.current = true;
+      const persisted = readPersistedTheme();
+      if (persisted !== THEME_DEFAULT) {
+        setThemeState(persisted);
+      }
+    }
+  }, []);
 
   // Keep `<html class="dark">` in sync whenever the theme changes.
   useEffect(() => {
     applyThemeToDocument(theme);
   }, [theme]);
 
-  // Persist the theme on every change after the initial render.
+  // Persist the theme on every change after the initial sync.
   useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      return;
-    }
-    if (typeof window === "undefined") {
+    if (!hasSynced.current) {
       return;
     }
     try {
