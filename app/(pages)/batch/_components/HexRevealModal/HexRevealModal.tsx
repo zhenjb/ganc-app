@@ -72,26 +72,29 @@ export function HexRevealModal({
     if (open) onClose();
   });
 
-  // Clear any pending confirmation timer when the component unmounts.
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  // When the modal closes, drop any lingering "Copied" confirmation so it does
-  // not flash on the next open.
+  // When the modal closes (or unmounts), clear any pending confirmation timer.
+  // The state reset is unnecessary here because `confirmVisible` is only read
+  // while `open` is true (the component returns null otherwise), and we reset
+  // it synchronously below before rendering content.
   useEffect(() => {
     if (!open) {
-      setConfirmVisible(false);
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
     }
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, [open]);
+
+  // Reset confirmation visibility synchronously when the modal is closed.
+  // This ensures it starts fresh on the next open without needing an effect.
+  if (!open && confirmVisible) {
+    setConfirmVisible(false);
+  }
 
   /** Show the confirmation and schedule it to disappear after copyConfirmMs. */
   function showConfirmation(): void {
