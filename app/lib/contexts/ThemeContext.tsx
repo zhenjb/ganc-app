@@ -6,8 +6,8 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -72,44 +72,67 @@ function applyThemeToDocument(theme: ThemeMode): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// localStorage as an external store via useSyncExternalStore
+// ---------------------------------------------------------------------------
+
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+function subscribeToThemeStore(callback: Listener): () => void {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+/** Notify all subscribers that the persisted theme changed. */
+function emitThemeChange(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+/** Snapshot reader for the client — reads localStorage. */
+function getThemeSnapshot(): ThemeMode {
+  return readPersistedTheme();
+}
+
+/** Snapshot reader for the server — always returns the default. */
+function getServerThemeSnapshot(): ThemeMode {
+  return THEME_DEFAULT;
+}
+
 /**
  * Provider that owns the user's theme preference. Mount at the root of
  * `app/layout.tsx` so the inline no-flash script's choice is taken over
  * by React after hydration without flicker.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize with THEME_DEFAULT so server and first client render match.
-  // The no-flash script already applied the correct class to <html>, so
-  // there's no visual flash even if localStorage has "dark".
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
-    // On the client, read localStorage immediately during initialization.
-    // This is safe because the no-flash script already set the correct
-    // class on <html>, so the visual state is already correct.
-    if (typeof window === "undefined") {
-      return THEME_DEFAULT;
-    }
-    return readPersistedTheme();
-  });
+  // Use useSyncExternalStore to read the persisted theme from localStorage.
+  // The server snapshot always returns THEME_DEFAULT, ensuring hydration
+  // parity. On the client, getThemeSnapshot reads localStorage directly.
+  const persistedTheme = useSyncExternalStore(
+    subscribeToThemeStore,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
 
-  // Track whether we've completed the first render to skip redundant persistence.
-  const isInitialRender = useRef(true);
+  // Local state tracks the active theme. Initialized from the external
+  // store value so client picks up the persisted choice after hydration.
+  const [theme, setThemeState] = useState<ThemeMode>(persistedTheme);
 
   // Keep `<html class="dark">` in sync whenever the theme changes.
   useEffect(() => {
     applyThemeToDocument(theme);
   }, [theme]);
 
-  // Persist the theme on every change after the initial render.
+  // Persist the theme to localStorage and notify subscribers.
   useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      return;
-    }
-    if (typeof window === "undefined") {
-      return;
-    }
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      const current = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (current !== theme) {
+        window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+        emitThemeChange();
+      }
     } catch {
       // Ignore — persistence is best-effort.
     }
