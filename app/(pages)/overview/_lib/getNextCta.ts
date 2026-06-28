@@ -35,7 +35,7 @@ export function getNextCta(state: AppState): CtaResult | null {
 
   // AC5: Proof ready to submit
   if (proofStatus === "generated") {
-    return { label: "Submit Batch Proof", href: "/proof/submit-proof" };
+    return { label: "Submit Batch Proof", href: "/submit-proof" };
   }
 
   // AC6: Proof not generated (already handled above) but withdraw is processed — claim available

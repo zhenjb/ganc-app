@@ -58,16 +58,8 @@ export const NAV_ITEMS: NavItemDefinition[] = [
     ],
   },
   { id: "batch", label: "Batch", href: "/batch", iconKey: "batch", statusSource: "batch" },
-  {
-    id: "proof",
-    label: "Proof",
-    iconKey: "proof",
-    statusSource: "proof",
-    children: [
-      { id: "proof", label: "Proof", href: "/proof", iconKey: "proof", statusSource: "proof" },
-      { id: "proof-submit", label: "Submit", href: "/proof/submit-proof", iconKey: "submit", statusSource: "proof" },
-    ],
-  },
+  { id: "proof", label: "Proof", href: "/proof", iconKey: "proof", statusSource: "proof" },
+  { id: "proof-submit", label: "Submit", href: "/submit-proof", iconKey: "submit", statusSource: "proof" },
   {
     id: "failure-demo",
     label: "Failure Demo",

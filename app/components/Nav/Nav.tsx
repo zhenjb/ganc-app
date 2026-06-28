@@ -85,10 +85,10 @@ interface ActiveMatch {
  * `disabled` skip below for clarity.
  *
  * Specificity rule: when multiple items match (e.g. the dropdown has both
- * `/proof` and `/proof/submit-proof` as children, and the user is on
- * `/proof/submit-proof`), we pick the *longest* matching `href` so the more
+ * `/withdraw` and `/withdraw/claim` as children, and the user is on
+ * `/withdraw/claim`), we pick the *longest* matching `href` so the more
  * specific child wins. Without this, prefix matching causes the parent route
- * (`/proof`) to highlight even when a sub-route is active.
+ * (`/withdraw`) to highlight even when a sub-route is active.
  */
 function computeActiveMatch(
   items: ReadonlyArray<NavItemDefinition>,
