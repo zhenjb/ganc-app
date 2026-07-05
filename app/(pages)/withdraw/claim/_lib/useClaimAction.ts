@@ -113,10 +113,13 @@ export function useClaimAction(
           };
         } else {
           // 2b. Real mode: connect wallet and broadcast on-chain
+          console.log("[FE-09 DEBUG] useClaimAction: real mode, importing wallet...");
           const { connectWallet } = await import(
             "@/app/lib/services/wallet"
           );
+          console.log("[FE-09 DEBUG] useClaimAction: calling connectWallet...");
           const connection = await connectWallet();
+          console.log("[FE-09 DEBUG] useClaimAction: connectWallet result:", connection);
           const { txHash } = await broadcastClaim(
             withdrawId,
             connection.address,

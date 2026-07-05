@@ -19,7 +19,6 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import Link from "next/link";
 import type { AppState } from "@/app/lib/interfaces/state";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 import { loadHistory } from "@/app/(pages)/withdraw/_lib/sessionHistory";
@@ -63,6 +62,22 @@ export function allRecordsClaimed(
 }
 
 /**
+ * Normalizes the status field from backend responses.
+ * Backend may use `claimed: boolean` instead of `status` string.
+ */
+function normalizeStatus(item: Record<string, unknown>): WithdrawRecord["status"] {
+  if (typeof item.status === "string") {
+    const valid = ["pending", "processed", "claimed", "rejected"];
+    return valid.includes(item.status)
+      ? (item.status as WithdrawRecord["status"])
+      : "pending";
+  }
+  // Backend uses `claimed: boolean`
+  if (item.claimed === true) return "claimed";
+  return "pending";
+}
+
+/**
  * ClaimScreen — layout orchestrator for the /withdraw/claim page.
  * Composes the banner, wallet prompt, records table, result card,
  * balance diff, and completion summary.
@@ -81,9 +96,26 @@ export function ClaimScreen({
       return fromSession;
     }
 
-    // Fallback: state.latestWithdrawRecords (single record or null)
+    // Fallback: state.latestWithdrawRecords (single record, array, or null)
     if (state.latestWithdrawRecords) {
-      return [state.latestWithdrawRecords];
+      const raw = state.latestWithdrawRecords;
+      const arr: unknown[] = Array.isArray(raw) ? raw : [raw];
+
+      // Normalize records — backend may use withdrawId/owner/claimed instead
+      // of the canonical WithdrawRecord shape (id/destination/status).
+      return arr
+        .filter((item): item is Record<string, unknown> => item != null && typeof item === "object")
+        .map((item) => ({
+          id: (item.id ?? item.withdrawId ?? "") as string,
+          destination: (item.destination ?? item.owner ?? "") as string,
+          destinationHash: (item.destinationHash ?? "") as string,
+          amount: (item.amount ?? "0") as string,
+          denom: (item.denom ?? "") as string,
+          nullifier: (item.nullifier ?? "") as string,
+          status: normalizeStatus(item),
+          createdAt: (item.createdAt ?? new Date().toISOString()) as string,
+          claimedAt: (item.claimedAt as string | undefined) ?? null,
+        }));
     }
 
     return [];
@@ -232,12 +264,6 @@ export function ClaimScreen({
           <p className={styles.emptyText}>
             No claimable withdraw records found.
           </p>
-          <p className={styles.emptyText}>
-            Complete the Submit Proof step first, then return here to claim.
-          </p>
-          <Link href="/submit-proof" className={styles.emptyLink}>
-            Go to Submit Proof
-          </Link>
         </div>
       )}
 

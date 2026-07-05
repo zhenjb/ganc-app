@@ -24,17 +24,13 @@ import type { ReactNode } from "react";
 
 import AppShell from "@/app/components/AppShell/AppShell";
 import { AppStateProvider } from "@/app/lib/contexts/AppStateContext";
-import { BatchSessionProvider } from "@/app/lib/contexts/BatchSessionContext";
 
 export default function PagesLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
     <AppStateProvider>
-      {/* In-memory batch session shared across the route group (FE-06 → FE-07). */}
-      <BatchSessionProvider>
-        <AppShell>{children}</AppShell>
-      </BatchSessionProvider>
+      <AppShell>{children}</AppShell>
     </AppStateProvider>
   );
 }

@@ -11,16 +11,6 @@ import type {
   WithdrawClaimInput,
   WithdrawClaimResponse,
 } from "@/app/lib/interfaces/withdraw";
-import type {
-  BatchBuildInput,
-  BatchBuildResponse,
-  BatchSubmitInput,
-  BatchSubmitResponse,
-} from "@/app/lib/interfaces/batch";
-import type {
-  ProofGenerateInput,
-  ProofGenerateResponse,
-} from "@/app/lib/interfaces/proof";
 
 export interface CallOptions {
   signal?: AbortSignal;
@@ -61,39 +51,6 @@ export function postWithdrawRequest(
   opts?: CallOptions
 ): Promise<WithdrawRequestResponse> {
   return request<WithdrawRequestResponse>("/api/withdraw-request", {
-    method: "POST",
-    body: JSON.stringify(input),
-    ...opts,
-  });
-}
-
-export function postBatchBuild(
-  input: BatchBuildInput,
-  opts?: CallOptions
-): Promise<BatchBuildResponse> {
-  return request<BatchBuildResponse>("/api/batch/build", {
-    method: "POST",
-    body: JSON.stringify(input),
-    ...opts,
-  });
-}
-
-export function postProofGenerate(
-  input: ProofGenerateInput,
-  opts?: CallOptions
-): Promise<ProofGenerateResponse> {
-  return request<ProofGenerateResponse>("/api/proof/generate", {
-    method: "POST",
-    body: JSON.stringify(input),
-    ...opts,
-  });
-}
-
-export function postBatchSubmit(
-  input: BatchSubmitInput,
-  opts?: CallOptions
-): Promise<BatchSubmitResponse> {
-  return request<BatchSubmitResponse>("/api/batch/submit", {
     method: "POST",
     body: JSON.stringify(input),
     ...opts,

@@ -7,20 +7,16 @@
  * `app/assets/index.ts`'s `icons` registry (Req 4.4).
  *
  * @see ./../../.kiro/specs/fe-01-app-shell/design.md "Data Models"
- * @see ./../assets/index.ts
+ * @see ../assets/index.ts
  */
 
 export type NavTabId =
   | "overview"
   | "deposit"
   | "withdraw"
-  | "withdraw-claim"
-  | "batch"
-  | "proof"
-  | "proof-submit"
-  | "failure-demo";
+  | "withdraw-claim";
 
-export type NavStatusSource = "deposit" | "withdraw" | "batch" | "proof" | null;
+export type NavStatusSource = "deposit" | "withdraw" | null;
 
 export interface NavLeafDefinition {
   id: NavTabId;
@@ -29,7 +25,7 @@ export interface NavLeafDefinition {
   iconKey: keyof typeof import("@/app/assets").icons;
   /** Which AppState.*Status drives this leaf's StatusIndicator. */
   statusSource: NavStatusSource;
-  /** Disabled placeholder — used only by "failure-demo" in FE-01. */
+  /** Disabled placeholder — reserved for future work. */
   disabled?: boolean;
   disabledTooltip?: string;
 }
@@ -47,26 +43,6 @@ export type NavItemDefinition = NavLeafDefinition | NavParentDefinition;
 export const NAV_ITEMS: NavItemDefinition[] = [
   { id: "overview", label: "Overview", href: "/overview", iconKey: "overview", statusSource: null },
   { id: "deposit", label: "Deposit", href: "/deposit", iconKey: "deposit", statusSource: "deposit" },
-  {
-    id: "withdraw",
-    label: "Withdraw",
-    iconKey: "withdraw",
-    statusSource: "withdraw",
-    children: [
-      { id: "withdraw", label: "Withdraw Request", href: "/withdraw", iconKey: "withdraw", statusSource: "withdraw" },
-      { id: "withdraw-claim", label: "Claim", href: "/withdraw/claim", iconKey: "claim", statusSource: "withdraw" },
-    ],
-  },
-  { id: "batch", label: "Batch", href: "/batch", iconKey: "batch", statusSource: "batch" },
-  { id: "proof", label: "Proof", href: "/proof", iconKey: "proof", statusSource: "proof" },
-  { id: "proof-submit", label: "Submit", href: "/submit-proof", iconKey: "submit", statusSource: "proof" },
-  {
-    id: "failure-demo",
-    label: "Failure Demo",
-    href: "#",
-    iconKey: "failureDemo",
-    statusSource: null,
-    disabled: true,
-    disabledTooltip: "Coming soon",
-  },
+  { id: "withdraw", label: "Withdraw Request", href: "/withdraw", iconKey: "withdraw", statusSource: "withdraw" },
+  { id: "withdraw-claim", label: "Claim", href: "/withdraw/claim", iconKey: "claim", statusSource: "withdraw" },
 ];

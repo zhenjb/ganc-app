@@ -13,6 +13,7 @@
 
 "use client";
 
+import React from "react";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 import styles from "./WithdrawRecordRow.module.scss";
 
@@ -33,9 +34,11 @@ export interface WithdrawRecordRowProps {
 
 /**
  * Shortens an address string to show first 10 and last 4 characters.
+ * Returns "—" for undefined/empty values.
  * Example: "cosmos1abcdefghijklmn" → "cosmos1abc...klmn"
  */
-function shortenAddress(address: string): string {
+function shortenAddress(address: string | undefined | null): string {
+  if (!address) return "—";
   if (address.length <= 14) return address;
   return `${address.slice(0, 10)}...${address.slice(-4)}`;
 }
@@ -80,7 +83,7 @@ export function WithdrawRecordRow({
   const isDisabled = claiming || claimed;
 
   return (
-    <>
+    <React.Fragment key={record.id}>
       {/* Main data row */}
       <tr className={styles.row} aria-busy={claiming}>
         {/* Withdraw ID */}
@@ -143,7 +146,7 @@ export function WithdrawRecordRow({
           </td>
         </tr>
       )}
-    </>
+    </React.Fragment>
   );
 }
 

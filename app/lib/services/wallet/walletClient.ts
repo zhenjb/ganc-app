@@ -61,8 +61,9 @@ export async function connectWallet(): Promise<WalletConnection> {
     const { name, api } = pickProvider();
 
     // Keplr/Leap throw if the chain is unknown. Suggest first, then enable.
-    try {
+    try {      console.log('connect 1')
       await api.experimentalSuggestChain(getChainInfo());
+      console.log('connect')
     } catch (suggestErr) {
       // Some wallets (e.g. Leap with allowlisted chain) may already know the
       // chain and reject suggest. That's fine — fall through to enable.

@@ -76,21 +76,7 @@ export function resolveStatus(
       }
       return "idle";
 
-    case "batch":
-      if (state.batchStatus === "rejected") return "error"; // Req 6.8
-      if (state.batchStatus === "submitted" || state.batchStatus === "settled") {
-        return "done"; // Req 6.5
-      }
-      return "idle";
-
-    case "proof":
-    case "proof-submit":
-      if (state.proofStatus === "rejected") return "error"; // Req 6.7
-      if (state.proofStatus === "generated") return "done"; // Req 6.6
-      return "idle";
-
     case "overview":
-    case "failure-demo":
       return "idle"; // Req 6.11
 
     default: {
