@@ -49,8 +49,8 @@ export function BatchCardContent({
     batchCommitments != null &&
     PUBLIC_INPUT_KEYS.some(
       (key) =>
-        batchCommitments.publicInputs[key] == null ||
-        batchCommitments.publicInputs[key] === ""
+        batchCommitments.publicInputs?.[key] == null ||
+        batchCommitments.publicInputs?.[key] === ""
     );
 
   return (
@@ -73,7 +73,7 @@ export function BatchCardContent({
               <dd>{shortenHex(batchCommitments.batchHash, 6, 4)}</dd>
             </div>
             {PUBLIC_INPUT_KEYS.map((key) => {
-              const value = batchCommitments.publicInputs[key];
+              const value = batchCommitments.publicInputs?.[key];
               return (
                 <div key={key}>
                   <dt>{PUBLIC_INPUT_LABELS[key]}</dt>

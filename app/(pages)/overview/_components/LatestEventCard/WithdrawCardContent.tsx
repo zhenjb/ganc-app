@@ -19,8 +19,10 @@ export interface WithdrawCardContentProps {
 export function WithdrawCardContent({
   latestWithdraw,
 }: WithdrawCardContentProps): React.ReactElement {
-  const shortenDestination = (address: string): string =>
-    `${address.slice(0, 10)}…${address.slice(-4)}`;
+  const shortenDestination = (address: string | undefined): string =>
+    address && address.length > 0
+      ? `${address.slice(0, 10)}…${address.slice(-4)}`
+      : "—";
 
   return (
     <LatestEventCard

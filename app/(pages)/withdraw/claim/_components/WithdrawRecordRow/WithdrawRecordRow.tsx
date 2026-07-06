@@ -15,6 +15,7 @@
 
 import React from "react";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
+import type { WithdrawSettlementStatus } from "@/app/lib/services/api";
 import styles from "./WithdrawRecordRow.module.scss";
 
 export interface WithdrawRecordRowProps {
@@ -30,6 +31,12 @@ export interface WithdrawRecordRowProps {
   error: string | null;
   /** Whether this record has already been claimed. */
   claimed: boolean;
+  /**
+   * On-chain settlement readiness. The Claim button is only enabled when this
+   * is "claimable"; otherwise the withdraw has not been settled on-chain yet
+   * and claiming would fail with "withdraw not found".
+   */
+  settlementStatus?: WithdrawSettlementStatus;
 }
 
 /**
@@ -79,8 +86,20 @@ export function WithdrawRecordRow({
   claiming,
   error,
   claimed,
+  settlementStatus = "unknown",
 }: WithdrawRecordRowProps): React.JSX.Element {
-  const isDisabled = claiming || claimed;
+  // Claiming is only allowed once the withdraw is settled on-chain. Until then
+  // the operator's sequencer hasn't produced an on-chain record to claim.
+  const notSettled = !claimed && settlementStatus !== "claimable";
+  const isDisabled = claiming || claimed || notSettled;
+
+  const claimLabel = claiming
+    ? "Claiming..."
+    : notSettled
+    ? settlementStatus === "unknown"
+      ? "Checking…"
+      : "Pending settlement"
+    : "Claim";
 
   return (
     <React.Fragment key={record.id}>
@@ -119,10 +138,15 @@ export function WithdrawRecordRow({
             className={styles.claimButton}
             disabled={isDisabled}
             aria-disabled={isDisabled}
+            title={
+              notSettled && settlementStatus === "pending_settlement"
+                ? "Waiting for the settlement batch to be submitted on-chain"
+                : undefined
+            }
             onClick={() => onClaim(record.id)}
           >
             {claiming && <span className={styles.spinner} aria-hidden="true" />}
-            {claiming ? "Claiming..." : "Claim"}
+            {claimLabel}
           </button>
         </td>
       </tr>

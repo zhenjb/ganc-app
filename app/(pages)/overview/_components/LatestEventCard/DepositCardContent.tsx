@@ -18,8 +18,10 @@ export interface DepositCardContentProps {
 export function DepositCardContent({
   latestDeposit,
 }: DepositCardContentProps): React.ReactElement {
-  const shortenDepositor = (address: string): string =>
-    `${address.slice(0, 10)}…${address.slice(-4)}`;
+  const shortenDepositor = (address: string | undefined): string =>
+    address && address.length > 0
+      ? `${address.slice(0, 10)}…${address.slice(-4)}`
+      : "—";
 
   return (
     <LatestEventCard

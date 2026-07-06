@@ -23,6 +23,7 @@ import type { AppState } from "@/app/lib/interfaces/state";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 import { loadHistory } from "@/app/(pages)/withdraw/_lib/sessionHistory";
 import { useClaimAction } from "@/app/(pages)/withdraw/claim/_lib/useClaimAction";
+import { useClaimReadiness } from "@/app/(pages)/withdraw/claim/_lib/useClaimReadiness";
 import { computeBalanceDiff } from "@/app/(pages)/withdraw/claim/_lib/balanceMath";
 import { WithdrawRecordRow } from "@/app/(pages)/withdraw/claim/_components/WithdrawRecordRow/WithdrawRecordRow";
 import { ClaimResultCard } from "@/app/(pages)/withdraw/claim/_components/ClaimResultCard/ClaimResultCard";
@@ -236,6 +237,16 @@ export function ClaimScreen({
   }, [unclaimedRecords, claimedIds]);
 
   // -------------------------------------------------------------------------
+  // 9b. Poll on-chain settlement readiness so the Claim button is only enabled
+  //     once the operator's sequencer has settled the batch (record on-chain).
+  // -------------------------------------------------------------------------
+  const displayIds = useMemo(
+    () => displayRecords.map((r) => r.id),
+    [displayRecords],
+  );
+  const readiness = useClaimReadiness(displayIds);
+
+  // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
   const isRealMode = state.mode === "local";
@@ -296,6 +307,7 @@ export function ClaimScreen({
                     claimed={
                       record.status === "claimed" || claimedIds.has(record.id)
                     }
+                    settlementStatus={readiness.get(record.id) ?? "unknown"}
                   />
                 );
               })}

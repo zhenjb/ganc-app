@@ -93,7 +93,7 @@ export function DepositScreen({
       />
 
       {/* 3. Result card — shown after successful deposit */}
-      {lastResult !== null && (
+      {lastResult != null && (
         <DepositResultCard
           deposit={lastResult}
           isMockMode={state.mode === "mock"}
@@ -101,7 +101,7 @@ export function DepositScreen({
       )}
 
       {/* 4. Balance diff — shown after successful deposit */}
-      {lastResult !== null && (
+      {lastResult != null && (
         <BalanceDiff
           before={balanceSnapshot}
           after={afterBalance}
