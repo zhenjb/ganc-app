@@ -63,5 +63,5 @@ export interface AppState {
   latestSettlement?: SettlementUpdate | null;
   latestBatchCommitments?: BatchCommitments | null;
   latestProof?: ProofBundle | null;
-  latestWithdrawRecords?: WithdrawRecord | null;
+  latestWithdrawRecords?: WithdrawRecord | WithdrawRecord[] | null;
 }

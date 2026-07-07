@@ -77,11 +77,26 @@ export function getChainSpec(): ChainSpec {
  * Build a Keplr-compatible ChainInfo for `experimentalSuggestChain`.
  * Coin decimals default to 6, which is correct for `USDT` / `uatom`.
  */
+/**
+ * Convert a minimal denom to its display form.
+ * Cosmos SDK convention: `u` prefix = micro unit (e.g. `uatom` → `ATOM`).
+ * If the denom is already uppercase or doesn't follow the u-prefix pattern
+ * (e.g. `USDT`, `ATOM`), return it as-is.
+ */
+function toDisplayDenom(denom: string): string {
+  // Only strip `u` when it's followed by all-lowercase letters (e.g. uatom, uosmo).
+  // Tokens like USDT, ATOM are already display-form.
+  if (/^u[a-z]+$/.test(denom)) {
+    return denom.slice(1).toUpperCase();
+  }
+  return denom;
+}
+
 export function getChainInfo(): ChainInfo {
   const spec = getChainSpec();
 
   const feeCurrency: FeeCurrency = {
-    coinDenom: spec.feeDenom.replace(/^u/, "").toUpperCase(),
+    coinDenom: toDisplayDenom(spec.feeDenom),
     coinMinimalDenom: spec.feeDenom,
     coinDecimals: 6,
     gasPriceStep: {
@@ -92,7 +107,7 @@ export function getChainInfo(): ChainInfo {
   };
 
   const currencies: Currency[] = spec.depositDenoms.map((denom) => ({
-    coinDenom: denom.replace(/^u/, "").toUpperCase(),
+    coinDenom: toDisplayDenom(denom),
     coinMinimalDenom: denom,
     coinDecimals: 6,
   }));
@@ -123,5 +138,5 @@ export function getChainInfo(): ChainInfo {
     currencies,
     feeCurrencies: [feeCurrency],
     stakeCurrency: feeCurrency,
-  };
+  } as ChainInfo;
 }

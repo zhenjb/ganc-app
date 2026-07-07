@@ -1,0 +1,144 @@
+// =============================================================================
+// ClaimResultCard — styles for the claim result display card.
+// -----------------------------------------------------------------------------
+// Green-accented card showing claim info after a successful transaction.
+// Sections: visual cue, txHash, withdraw record details, balances.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  padding: v.$space-4;
+  background: #f0fdf4; // green-50
+  border: 1px solid #86efac; // green-300
+  border-radius: 0.5rem;
+
+  :global(.dark) & {
+    background: #052e16; // green-950
+    border-color: #166534; // green-800
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  color: #166534; // green-800
+
+  :global(.dark) & {
+    color: #86efac; // green-300
+  }
+}
+
+.visualCue {
+  margin: 0;
+  padding: v.$space-2 v.$space-3;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  color: #166534; // green-800
+  background: #dcfce7; // green-100
+  border-radius: 0.25rem;
+
+  :global(.dark) & {
+    color: #bbf7d0; // green-200
+    background: #14532d; // green-900
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.sectionLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #166534; // green-800
+
+  :global(.dark) & {
+    color: #86efac; // green-300
+  }
+}
+
+.txHash {
+  margin: 0;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827; // gray-900
+  word-break: break-all;
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: v.$space-2;
+}
+
+.label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: #166534; // green-800
+  min-width: 6rem;
+  flex-shrink: 0;
+
+  :global(.dark) & {
+    color: #86efac; // green-300
+  }
+}
+
+.value {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #111827; // gray-900
+  word-break: break-all;
+
+  :global(.dark) & {
+    color: #f9fafb; // gray-50
+  }
+}
+
+.balances {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.balanceItem {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  color: #374151; // gray-700
+
+  :global(.dark) & {
+    color: #d1d5db; // gray-300
+  }
+}

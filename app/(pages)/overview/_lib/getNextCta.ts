@@ -7,40 +7,23 @@ export interface CtaResult {
 
 /**
  * Pure function — no side effects, no mutations.
- * Evaluates CTA conditions in strict priority order (AC1 → AC6).
+ * Evaluates CTA conditions in strict priority order.
  * Returns the first matching result, or null if none match.
  */
 export function getNextCta(state: AppState): CtaResult | null {
-  const { depositStatus, withdrawStatus, batchStatus, proofStatus } = state;
+  const { depositStatus, withdrawStatus } = state;
 
-  // AC1: Deposit not started yet
+  // 1. Deposit not started yet
   if (depositStatus === "none") {
     return { label: "Start Deposit", href: "/deposit" };
   }
 
-  // AC2: Deposit done, withdraw not started
+  // 2. Deposit done, withdraw not started
   if (depositStatus === "processed" && withdrawStatus === "none") {
     return { label: "Create Withdraw Request", href: "/withdraw" };
   }
 
-  // AC3: Withdraw pending, batch not started
-  if (withdrawStatus === "pending" && batchStatus === "none") {
-    return { label: "Build Batch", href: "/batch" };
-  }
-
-  // AC4: Batch submitted, proof not started
-  if (batchStatus === "submitted" && proofStatus === "idle") {
-    return { label: "Generate Proof", href: "/proof" };
-  }
-
-  // AC5: Proof ready to submit
-  if (proofStatus === "generated") {
-    return { label: "Submit Batch Proof", href: "/proof/submit-proof" };
-  }
-
-  // AC6: Proof not generated (already handled above) but withdraw is processed — claim available
-  // At this point proofStatus is narrowed to "idle" | "pending" | "rejected" (not "generated"),
-  // so the !== "generated" guard is redundant and omitted to satisfy strict TypeScript.
+  // 3. Withdraw processed — claim available
   if (withdrawStatus === "processed") {
     return { label: "Claim Withdraw", href: "/withdraw/claim" };
   }

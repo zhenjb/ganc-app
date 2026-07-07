@@ -7,7 +7,6 @@
 //   3. WithdrawRequestForm (controlled form)
 //   4. WithdrawRequestCard (conditional — shown after a successful submit)
 //   5. WithdrawRequestHistory (always visible)
-//   6. CTA "Continue to Batch" (enabled iff a pending request exists)
 //
 // Wires the useWithdrawRequestForm hook and passes props to child components.
 // The hook reads { state, refresh } internally from AppStateContext (matching
@@ -18,7 +17,6 @@
 
 "use client";
 
-import Link from "next/link";
 import type { AppState } from "@/app/lib/interfaces/state";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 import { useWithdrawRequestForm } from "@/app/(pages)/withdraw/_lib/useWithdrawRequestForm";
@@ -78,9 +76,6 @@ export function WithdrawRequestScreen({
       ? formatAmount(availableBalanceRaw, formState.denom)
       : null;
 
-  // CTA is enabled iff at least one request in the session history is pending.
-  const hasPending = hasPendingRequest(history);
-
   return (
     <div className={styles.screen}>
       {/* 1. Explanation banner — always visible */}
@@ -130,17 +125,6 @@ export function WithdrawRequestScreen({
 
       {/* 5. Withdraw request history — always visible */}
       <WithdrawRequestHistory entries={history} />
-
-      {/* 6. CTA "Continue to Batch" — enabled iff a pending request exists */}
-      {hasPending ? (
-        <Link href="/batch" className={styles.cta}>
-          Continue to Batch
-        </Link>
-      ) : (
-        <span className={styles.ctaDisabled} role="link" aria-disabled="true">
-          Continue to Batch
-        </span>
-      )}
     </div>
   );
 }
