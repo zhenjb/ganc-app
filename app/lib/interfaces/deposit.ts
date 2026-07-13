@@ -12,8 +12,9 @@ export interface DepositRecord {
   amount: string;
   denom: string;
   txHash: HexString;
-  /** ISO 8601 timestamp string. */
   createdAt: string;
+  /** Whether the deposit was successfully processed by the backend. */
+  processed: boolean;
 }
 
 /**
@@ -38,4 +39,11 @@ export interface DepositResponse {
  */
 export interface DepositLookupResponse {
   deposit: DepositRecord;
+}
+
+/**
+ * Response body for `GET /api/deposits` — paginated deposit history.
+ */
+export interface DepositListResponse {
+  deposits: DepositRecord[];
 }

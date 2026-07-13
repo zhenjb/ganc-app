@@ -1,105 +1,307 @@
 // =============================================================================
-// OverviewScreen — module styles
-// -----------------------------------------------------------------------------
-// Provides structural styles for the OverviewScreen orchestrator.
-// The responsive grid itself is handled by Tailwind utility classes
-// (`grid grid-cols-1 lg:grid-cols-3 gap-6`) applied directly in the TSX.
-// This module handles spacing, column layout helpers, status panel chrome,
-// and the syncing hint.
+// OverviewScreen — DEX Landing Hero styles
 // =============================================================================
 
 @use "@/app/lib/sass/variables" as v;
 @use "@/app/lib/sass/mixins" as m;
 
 // -----------------------------------------------------------------------------
-// Root wrapper
+// Root — relative container for layered background + content
 // -----------------------------------------------------------------------------
 
-.screen {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-6;
+.root {
+  position: relative;
   width: 100%;
-}
-
-// -----------------------------------------------------------------------------
-// Column — vertical stack inside each grid cell
-// -----------------------------------------------------------------------------
-
-.column {
+  min-height: calc(100vh - 4rem);
   display: flex;
   flex-direction: column;
-  gap: v.$space-6;
 }
 
 // -----------------------------------------------------------------------------
-// Status panel
+// Background layer — full-bleed image with dark overlay
 // -----------------------------------------------------------------------------
 
-.statusPanel {
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bgImage {
+  object-fit: cover;
+  object-position: center top;
+  filter: brightness(0.7);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 30, 0.75) 0%,
+    rgba(10, 10, 30, 0.55) 40%,
+    rgba(10, 10, 30, 0.85) 100%
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Content layer — sits above the background
+// -----------------------------------------------------------------------------
+
+.content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: v.$space-4;
-  padding: v.$space-4;
-  border-radius: 0.5rem;
-  background-color: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
 
-  :global(.dark) & {
-    background-color: var(--color-surface-dark, #1f2937);
-    border-color: var(--color-border-dark, #374151);
-  }
-}
-
-.statusHeading {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-secondary, #6b7280);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  :global(.dark) & {
-    color: var(--color-text-secondary-dark, #9ca3af);
-  }
-}
-
-.statusBadges {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-3;
-}
-
-// -----------------------------------------------------------------------------
-// Syncing hint — shown in LatestEventsPanel area when mode=real and no data
-// -----------------------------------------------------------------------------
-
-.syncingHint {
-  padding: v.$space-3 v.$space-4;
-  border-radius: 0.375rem;
-  background-color: var(--banner-info-bg, #{v.$banner-info-bg});
-  color: var(--banner-info-fg, #{v.$banner-info-fg});
-  border: 1px solid var(--banner-info-edge, #{v.$banner-info-edge});
-  font-size: 0.875rem;
-
-  :global(.dark) & {
-    background-color: #1e3a5f;
-    color: #bfdbfe;
-    border-color: #1d4ed8;
+  @include m.desktop-and-up {
+    padding: 5rem 2rem 6rem;
   }
 }
 
 // -----------------------------------------------------------------------------
-// Reference strip wrapper — adds top separation from the grid
+// Hero section
 // -----------------------------------------------------------------------------
 
-.referenceStripWrapper {
-  padding-top: v.$space-4;
-  border-top: 1px solid var(--color-border, #e5e7eb);
-  color: var(--color-text-secondary, #6b7280);
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 720px;
+  margin-bottom: 4rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  background: rgba(108, 92, 231, 0.2);
+  border: 1px solid rgba(108, 92, 231, 0.4);
+  color: #c4b5fd;
   font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
 
-  :global(.dark) & {
-    border-color: var(--color-border-dark, #374151);
-    color: var(--color-text-secondary-dark, #9ca3af);
+.headline {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 1.25rem;
+
+  @include m.tablet-and-up {
+    font-size: 3rem;
   }
+
+  @include m.desktop-and-up {
+    font-size: 3.5rem;
+  }
+}
+
+.accent {
+  background: linear-gradient(135deg, #a78bfa, #6c5ce7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 2rem;
+  max-width: 560px;
+
+  @include m.tablet-and-up {
+    font-size: 1.125rem;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Stats row
+// -----------------------------------------------------------------------------
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+
+  @include m.mobile-only {
+    gap: 1.25rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+
+  @include m.tablet-and-up {
+    font-size: 1.5rem;
+  }
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+// -----------------------------------------------------------------------------
+// CTA buttons
+// -----------------------------------------------------------------------------
+
+.ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #6c5ce7, #5a4bd6);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.35);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(108, 92, 231, 0.5);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Features section
+// -----------------------------------------------------------------------------
+
+.features {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.featuresHeading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 2rem;
+  text-align: center;
+
+  @include m.tablet-and-up {
+    font-size: 1.75rem;
+  }
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  width: 100%;
+
+  @include m.tablet-and-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include m.desktop-and-up {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.featureCard {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(108, 92, 231, 0.4);
+  }
+}
+
+.featureIcon {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.featureTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+}
+
+.featureDesc {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
 }

@@ -1,0 +1,39 @@
+@use "@/app/lib/sass/mixins" as m;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// Main 3-column grid
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @include m.tablet-and-up {
+    grid-template-columns: 260px 260px 1fr;
+  }
+}
+
+// Card (shared for all panels)
+.card {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  border: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  padding: 1rem;
+
+  :global(.dark) & {
+    background: var(--surface);
+    border-color: var(--surface-border);
+  }
+}
+
+.rightCard {
+  // Allow it to span remaining space
+}
+
+.bottomCard {
+  width: 100%;
+}

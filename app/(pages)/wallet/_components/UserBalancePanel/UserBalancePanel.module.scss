@@ -1,0 +1,18 @@
+// =============================================================================
+// UserBalancePanel — 2-column layout for User Balance + Module Balance cards
+// =============================================================================
+
+@use "@/app/lib/sass/mixins" as m;
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @include m.tablet-and-up {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+}

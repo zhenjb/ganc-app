@@ -9,6 +9,7 @@ import type {
   DepositInput,
   DepositResponse,
   DepositLookupResponse,
+  DepositListResponse,
 } from "@/app/lib/interfaces/deposit";
 import type {
   WithdrawRequestInput,
@@ -62,6 +63,21 @@ export async function getDepositById(
     { method: "GET", ...opts }
   );
   return { deposit: normalizeDeposit(raw.depositRecord ?? raw.deposit ?? raw) };
+}
+
+/**
+ * GET /api/deposits — fetch the full list of deposit records.
+ * Used by the deposit history panel to show persisted history.
+ */
+export async function getDeposits(
+  opts?: CallOptions
+): Promise<DepositListResponse> {
+  const raw = await request<Record<string, unknown>>("/api/deposits", {
+    method: "GET",
+    ...opts,
+  });
+  const list = Array.isArray(raw.deposits) ? raw.deposits : [];
+  return { deposits: list.map(normalizeDeposit) };
 }
 
 export async function postWithdrawRequest(

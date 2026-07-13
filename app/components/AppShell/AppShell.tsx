@@ -63,7 +63,6 @@ import { type ReactNode } from "react";
 
 import AnnouncementBanner from "@/app/components/AnnouncementBanner/AnnouncementBanner";
 import ErrorPage from "@/app/components/ErrorPage/ErrorPage";
-import Footer from "@/app/components/Footer/Footer";
 import Header from "@/app/components/Header/Header";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
 
@@ -118,8 +117,6 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
           children
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -13,10 +13,9 @@
 export type NavTabId =
   | "overview"
   | "deposit"
-  | "withdraw"
-  | "withdraw-claim";
+  | "trade";
 
-export type NavStatusSource = "deposit" | "withdraw" | null;
+export type NavStatusSource = "deposit" | null;
 
 export interface NavLeafDefinition {
   id: NavTabId;
@@ -42,7 +41,6 @@ export type NavItemDefinition = NavLeafDefinition | NavParentDefinition;
 
 export const NAV_ITEMS: NavItemDefinition[] = [
   { id: "overview", label: "Overview", href: "/overview", iconKey: "overview", statusSource: null },
-  { id: "deposit", label: "Deposit", href: "/deposit", iconKey: "deposit", statusSource: "deposit" },
-  { id: "withdraw", label: "Withdraw Request", href: "/withdraw", iconKey: "withdraw", statusSource: "withdraw" },
-  { id: "withdraw-claim", label: "Claim", href: "/withdraw/claim", iconKey: "claim", statusSource: "withdraw" },
+  { id: "deposit", label: "Wallet", href: "/wallet", iconKey: "wallet", statusSource: "deposit" },
+  { id: "trade", label: "Trade", href: "/trade", iconKey: "trade", statusSource: null },
 ];

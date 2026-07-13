@@ -1,0 +1,80 @@
+// =============================================================================
+// WithdrawRequestHistory — status badge styles only.
+// -----------------------------------------------------------------------------
+// The table layout is now handled by the shared RecordTable component.
+// This file retains only the status badge color variants used by the Status
+// column render function.
+//
+// Requirements: 5.1, 5.2, 5.3
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+
+// -----------------------------------------------------------------------------
+// Status badge — base pill + one modifier per status with distinct colors.
+// -----------------------------------------------------------------------------
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: v.$space-1 v.$space-2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+  border-radius: 9999px; // pill shape
+  flex-shrink: 0;
+}
+
+// pending → amber
+.statusPending {
+  color: #78350f; // amber-900
+  background: #fef3c7; // amber-100
+  border-color: #fcd34d; // amber-300
+
+  :global(.dark) & {
+    color: #fde68a; // amber-200
+    background: #78350f; // amber-900
+    border-color: #92400e; // amber-800
+  }
+}
+
+// processed → blue
+.statusProcessed {
+  color: #1e3a8a; // blue-900
+  background: #dbeafe; // blue-100
+  border-color: #93c5fd; // blue-300
+
+  :global(.dark) & {
+    color: #bfdbfe; // blue-200
+    background: #1e3a8a; // blue-900
+    border-color: #1e40af; // blue-800
+  }
+}
+
+// claimed → green
+.statusClaimed {
+  color: #14532d; // green-900
+  background: #dcfce7; // green-100
+  border-color: #86efac; // green-300
+
+  :global(.dark) & {
+    color: #bbf7d0; // green-200
+    background: #14532d; // green-900
+    border-color: #166534; // green-800
+  }
+}
+
+// rejected → red
+.statusRejected {
+  color: #7f1d1d; // red-900
+  background: #fee2e2; // red-100
+  border-color: #fca5a5; // red-300
+
+  :global(.dark) & {
+    color: #fecaca; // red-200
+    background: #7f1d1d; // red-900
+    border-color: #991b1b; // red-800
+  }
+}

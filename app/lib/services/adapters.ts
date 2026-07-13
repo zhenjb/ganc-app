@@ -53,6 +53,7 @@ export function normalizeDeposit(input: unknown): DepositRecord {
     denom: str(r.denom),
     txHash: str(r.txHash),
     createdAt: str(r.createdAt),
+    processed: r.processed === false ? false : true,
   };
 }
 

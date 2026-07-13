@@ -1,0 +1,96 @@
+@use "@/app/lib/sass/mixins" as m;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// Tabs
+.tabs {
+  display: flex;
+  gap: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.tab {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 0 8px 0;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.tabActive {
+  color: var(--foreground);
+  border-bottom: 2px solid #6c5ce7;
+}
+
+// Table
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    color: var(--muted-foreground);
+    font-weight: 600;
+    padding: 8px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 6px;
+    border-top: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+    white-space: nowrap;
+  }
+}
+
+.buyTag {
+  color: #16c784;
+  font-weight: 700;
+}
+
+.sellTag {
+  color: #f6465d;
+  font-weight: 700;
+}
+
+.cancelLink {
+  color: #6c5ce7;
+  font-weight: 700;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font: inherit;
+  padding: 0;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.emptyRow {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: 1.5rem 0 !important;
+}
+
+.cancelError {
+  font-size: 12px;
+  color: #f6465d;
+  padding: 4px 0;
+}

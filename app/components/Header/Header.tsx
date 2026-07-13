@@ -237,8 +237,8 @@ export function Header(): React.JSX.Element {
           </Link>
         </div>
 
-        {/* Center region — primary navigation (Req 3.5). */}
-        <div className="flex items-center justify-center flex-1 min-w-0 overflow-visible">
+        {/* Navigation — aligned left after the logo (Req 3.5). */}
+        <div className="flex items-center flex-1 min-w-0 overflow-visible ml-[60px]">
           <Nav />
         </div>
 

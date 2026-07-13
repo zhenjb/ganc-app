@@ -5,6 +5,8 @@ export * from "./api";
 export * from "./state";
 export * from "./deposit";
 export * from "./withdraw";
+export * from "./withdraw-form";
 export * from "./batch";
 export * from "./proof";
 export * from "./wallet";
+export * from "./trade";

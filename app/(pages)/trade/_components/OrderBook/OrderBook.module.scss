@@ -1,0 +1,150 @@
+@use "@/app/lib/sass/mixins" as m;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pair {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.marketSelect {
+  background: var(--hover-tint);
+  border: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.loading {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 2rem 0;
+}
+
+// Spread banner
+.spreadBanner {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--hover-tint);
+  border-radius: 10px;
+  padding: 10px 0;
+}
+
+.spreadPrice {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.spreadLabel {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+// Split book grid
+.splitBook {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.colTitle {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  margin-bottom: 6px;
+}
+
+.buyTitle {
+  color: #16c784;
+}
+
+.sellTitle {
+  color: #f6465d;
+}
+
+.obRow {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-bottom: 2px;
+}
+
+.bg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  z-index: 0;
+}
+
+.buyRow .bg {
+  right: 0;
+  background: rgba(22, 199, 132, 0.1);
+}
+
+.sellRow .bg {
+  left: 0;
+  background: rgba(246, 70, 93, 0.1);
+}
+
+.cellPrice,
+.cellAmt {
+  position: relative;
+  z-index: 1;
+}
+
+.buyPrice {
+  color: #16c784;
+}
+
+.sellPrice {
+  color: #f6465d;
+}
+
+.cellAmt {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.emptyCol {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 1rem 0;
+}

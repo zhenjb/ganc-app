@@ -1,0 +1,110 @@
+// =============================================================================
+// Deposit Page — FormTabs styles
+// -----------------------------------------------------------------------------
+// Tab switcher between Deposit and Withdraw forms.
+// Matches the UI: card wrapper with rounded corners, pill-shaped tab bar,
+// and form content below.
+// =============================================================================
+
+@use "@/app/lib/sass/variables" as v;
+@use "@/app/lib/sass/mixins" as m;
+
+// -----------------------------------------------------------------------------
+// Card wrapper — rounded container with subtle shadow
+// -----------------------------------------------------------------------------
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid var(--surface-border, rgba(0, 0, 0, 0.08));
+  border-radius: 16px;
+  padding: v.$space-5;
+
+  :global(.dark) & {
+    background-color: var(--surface, #18181b);
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.12));
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Tabs container — pill-shaped track
+// -----------------------------------------------------------------------------
+
+.tabsContainer {
+  display: flex;
+  align-items: center;
+  background-color: #f3f4f6; // gray-100
+  border-radius: 9999px;
+  padding: 4px;
+  gap: 4px;
+
+  :global(.dark) & {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Individual tab button
+// -----------------------------------------------------------------------------
+
+.tab {
+  flex: 1;
+  padding: v.$space-2 v.$space-4;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+  background-color: transparent;
+  color: #6b7280; // gray-500
+
+  &:hover:not(.tabActiveDeposit):not(.tabActiveWithdraw) {
+    color: #374151; // gray-700
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+
+  :global(.dark) & {
+    color: #9ca3af; // gray-400
+
+    &:hover:not(.tabActiveDeposit):not(.tabActiveWithdraw) {
+      color: #d1d5db; // gray-300
+    }
+  }
+}
+
+// Deposit active — green (money in)
+.tabActiveDeposit {
+  background-color: #16a34a; // green-600
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  :global(.dark) & {
+    background-color: #22c55e; // green-500
+    color: #ffffff;
+  }
+}
+
+// Withdraw active — orange-red (money out)
+.tabActiveWithdraw {
+  background-color: #ea580c; // orange-600
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  :global(.dark) & {
+    background-color: #f97316; // orange-500
+    color: #ffffff;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Tab panel wrapper
+// -----------------------------------------------------------------------------
+
+.tabPanel {
+  margin-top: v.$space-4;
+}

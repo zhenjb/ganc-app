@@ -1,109 +1,115 @@
 // =============================================================================
-// Overview Screen (FE-03) — OverviewScreen
+// OverviewScreen — DEX Landing Hero
 // -----------------------------------------------------------------------------
-// Pure display orchestrator for the /overview dashboard.
-// Receives all data via props — no hooks, no context access.
-//
-// Layout:
-//   Top row (2 cols on desktop):
-//     Col 1: RootCard + BalanceTable
-//     Col 2: StatusPanel (4× StatusBadge) + CtaSuggestion
-//   Bottom row (3 cols on desktop):
-//     Col 1: DepositCardContent
-//     Col 2: WithdrawCardContent
-//     Col 3: BatchCardContent
-//
-// Special case: when mode === "local" and all latest* fields are null,
-// renders a syncing hint above the Latest Events row.
-//
-// Requirements: 3.1, 9.2, 9.3, 9.5, 10.1
+// Full-screen hero section showcasing the ZKDEX decentralized exchange.
+// Uses /assets/image.png as a background with an overlay for readability.
+// Features: headline, description, feature cards, and CTA buttons.
 // =============================================================================
 
-import type { AppState } from "@/app/lib/interfaces/state";
-import RootCard from "@/app/(pages)/overview/_components/RootCard/RootCard";
-import BalanceTable from "@/app/(pages)/overview/_components/BalanceTable/BalanceTable";
-import StatusBadge from "@/app/components/StatusBadge/StatusBadge";
-import DepositCardContent from "@/app/(pages)/overview/_components/LatestEventCard/DepositCardContent";
-import WithdrawCardContent from "@/app/(pages)/overview/_components/LatestEventCard/WithdrawCardContent";
-import BatchCardContent from "@/app/(pages)/overview/_components/LatestEventCard/BatchCardContent";
-import CtaSuggestion from "@/app/(pages)/overview/_components/CtaSuggestion/CtaSuggestion";
-import ReferenceStrip from "@/app/(pages)/overview/_components/ReferenceStrip/ReferenceStrip";
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
 import styles from "./OverviewScreen.module.scss";
 
-export interface OverviewScreenProps {
-  /** Full pipeline state — all panels derive their data from this. */
-  state: AppState;
-  /** Callback to trigger a manual data refresh. */
-  refresh: () => void;
-  /** True while a refresh request is in-flight. */
-  inFlight: boolean;
-}
+/** Feature card data for the highlights section. */
+const FEATURES = [
+  {
+    title: "Zero-Knowledge Proofs",
+    description:
+      "Every trade is verified with ZK proofs, ensuring complete privacy while maintaining full transparency of the order book.",
+    icon: "🛡️",
+  },
+  {
+    title: "On-Chain Settlement",
+    description:
+      "Deposits, withdrawals, and batch settlements happen directly on-chain with cryptographic guarantees.",
+    icon: "⛓️",
+  },
+  {
+    title: "Instant Matching",
+    description:
+      "Off-chain order matching with on-chain finality. Place limit orders and get matched in milliseconds.",
+    icon: "⚡",
+  },
+  {
+    title: "Non-Custodial",
+    description:
+      "Your keys, your funds. The module account holds assets but only ZK-verified state transitions can move them.",
+    icon: "🔑",
+  },
+] as const;
 
-/**
- * OverviewScreen — layout orchestrator for the /overview dashboard.
- * Pure display component: no hooks, no context reads.
- */
-export function OverviewScreen({
-  state,
-  refresh: _refresh,
-  inFlight: _inFlight,
-}: OverviewScreenProps): React.JSX.Element {
-  // Determine whether to show the "indexer syncing" hint.
-  // Condition: mode is "local" AND all latest* fields are null/undefined.
-  const isRealWithNoData =
-    state.mode === "local" &&
-    (state.latestDeposit == null) &&
-    (state.latestWithdrawRequest == null) &&
-    (state.latestBatchCommitments == null);
+/** Stats displayed in the hero section. */
+const STATS = [
+  { label: "Markets", value: "4+" },
+  { label: "Avg. Settlement", value: "<2s" },
+  { label: "Proof System", value: "Groth16" },
+] as const;
 
+export function OverviewScreen(): React.JSX.Element {
   return (
-    <div className={styles.screen}>
-      {/* ── Top row: 2 columns ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Col 1: State Root + Balances */}
-        <div className={styles.column}>
-          <RootCard
-            currentStateRoot={state.currentStateRoot}
-            mode={state.mode}
-          />
-          <BalanceTable
-            userBalances={state.userBalances}
-            moduleAccountBalance={state.moduleAccountBalance}
-          />
-        </div>
-
-        {/* Col 2: Status Panel + CTA */}
-        <div className={styles.column}>
-          <section className={styles.statusPanel} aria-label="Pipeline status">
-            <h2 className={styles.statusHeading}>Pipeline Status</h2>
-            <div className={styles.statusBadges}>
-              <StatusBadge pipelineName="Deposit" status={state.depositStatus} />
-              <StatusBadge pipelineName="Withdraw" status={state.withdrawStatus} />
-              <StatusBadge pipelineName="Proof" status={state.proofStatus} />
-              <StatusBadge pipelineName="Batch" status={state.batchStatus} />
-            </div>
-          </section>
-          <CtaSuggestion state={state} />
-        </div>
-
+    <div className={styles.root}>
+      {/* Background image layer */}
+      <div className={styles.bgLayer}>
+        <Image
+          src="/assets/image.png"
+          alt=""
+          fill
+          priority
+          className={styles.bgImage}
+          sizes="100vw"
+        />
+        <div className={styles.overlay} />
       </div>
 
-      {/* ── Bottom row: Latest Events (3 columns) ── */}
-      {isRealWithNoData && (
-        <p className={styles.syncingHint} role="status" aria-live="polite">
-          Indexer may still be syncing
-        </p>
-      )}
-      <div className="flex flex-col gap-6">
-        <DepositCardContent latestDeposit={state.latestDeposit} />
-        <WithdrawCardContent latestWithdraw={state.latestWithdrawRequest} />
-        <BatchCardContent batchCommitments={state.latestBatchCommitments} />
-      </div>
+      {/* Content layer */}
+      <div className={styles.content}>
+        {/* Hero section */}
+        <section className={styles.hero}>
+          <span className={styles.badge}>Live Demo</span>
+          <h1 className={styles.headline}>
+            Trade with <span className={styles.accent}>Zero-Knowledge</span> Privacy
+          </h1>
+          <p className={styles.subtitle}>
+            A fully on-chain DEX powered by ZK proofs. Experience private trading
+            with verifiable settlement on Cosmos.
+          </p>
 
-      {/* Reference strip — static, always visible */}
-      <div className={styles.referenceStripWrapper}>
-        <ReferenceStrip />
+          {/* Stats row */}
+          <div className={styles.stats}>
+            {STATS.map((stat) => (
+              <div key={stat.label} className={styles.statItem}>
+                <span className={styles.statValue}>{stat.value}</span>
+                <span className={styles.statLabel}>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA buttons */}
+          <div className={styles.ctas}>
+            <Link href="/trade" className={styles.ctaPrimary}>
+              Start Trading
+            </Link>
+            <Link href="/wallet" className={styles.ctaSecondary}>
+              Deposit Funds
+            </Link>
+          </div>
+        </section>
+
+        {/* Feature cards section */}
+        <section className={styles.features} aria-label="Platform features">
+          <h2 className={styles.featuresHeading}>Why ZKDEX?</h2>
+          <div className={styles.featureGrid}>
+            {FEATURES.map((feature) => (
+              <article key={feature.title} className={styles.featureCard}>
+                <span className={styles.featureIcon}>{feature.icon}</span>
+                <h3 className={styles.featureTitle}>{feature.title}</h3>
+                <p className={styles.featureDesc}>{feature.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

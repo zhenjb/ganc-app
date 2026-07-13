@@ -9,6 +9,8 @@ import OverviewIcon from "./icons/OverviewIcon";
 import ProofIcon from "./icons/ProofIcon";
 import SubmitIcon from "./icons/SubmitIcon";
 import SunIcon from "./icons/SunIcon";
+import WalletIcon from "./icons/WalletIcon";
+import TradeIcon from "./icons/TradeIcon";
 import WithdrawIcon from "./icons/WithdrawIcon";
 
 /**
@@ -19,6 +21,7 @@ import WithdrawIcon from "./icons/WithdrawIcon";
 export const icons = {
   overview: OverviewIcon,
   deposit: DepositIcon,
+  wallet: WalletIcon,
   withdraw: WithdrawIcon,
   claim: ClaimIcon,
   batch: BatchIcon,
@@ -27,6 +30,7 @@ export const icons = {
   failureDemo: FailureDemoIcon,
   hamburger: HamburgerIcon,
   chevron: ChevronIcon,
+  trade: TradeIcon,
   sun: SunIcon,
   moon: MoonIcon,
 } as const;

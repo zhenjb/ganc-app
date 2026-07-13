@@ -103,6 +103,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     denom,
     txHash,
     createdAt,
+    processed: true,
   };
 
   mockState.latestDeposit = deposit;

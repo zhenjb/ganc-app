@@ -1,0 +1,177 @@
+@use "@/app/lib/sass/mixins" as m;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// Toggle row (Buy/Sell)
+.toggleRow {
+  display: flex;
+  background: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.toggleBtn {
+  flex: 1;
+  border: none;
+  padding: 10px 0;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted-foreground);
+  transition: background 150ms, color 150ms;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.toggleBtnActive.buy {
+  background: #16c784;
+  color: #fff;
+}
+
+.toggleBtnActive.sell {
+  background: #f6465d;
+  color: #fff;
+}
+
+// Sub-tabs (Limit, Market, Stop Limit)
+.subTabs {
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.subTabActive {
+  color: var(--foreground);
+}
+
+.subTab {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font: inherit;
+  padding: 0;
+  color: inherit;
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+// Field
+.fieldLabel {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 4px;
+}
+
+.fieldBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--hover-tint);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+.fieldInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--foreground);
+  width: 100%;
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.fieldUnit {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+// Slider
+.slider {
+  width: 100%;
+  accent-color: #6c5ce7;
+  margin: 6px 0;
+}
+
+// Summary
+.summaryTitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 6px 0 10px;
+  color: var(--muted-foreground);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  color: var(--muted-foreground);
+
+  b {
+    color: var(--foreground);
+  }
+}
+
+// Place button
+.placeBtn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: opacity 150ms;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}
+
+.placeBtnBuy {
+  background: #16c784;
+  color: #fff;
+}
+
+.placeBtnSell {
+  background: #f6465d;
+  color: #fff;
+}
+
+// Error
+.error {
+  font-size: 12px;
+  color: #f6465d;
+  margin-top: 4px;
+}

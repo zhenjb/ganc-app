@@ -65,19 +65,11 @@ export function resolveStatus(
       if (state.depositStatus === "processed") return "done"; // Req 6.3
       return "idle";
 
-    case "withdraw":
-    case "withdraw-claim":
-      if (state.withdrawStatus === "rejected") return "error"; // Req 6.10
-      if (
-        state.withdrawStatus === "processed" ||
-        state.withdrawStatus === "claimed"
-      ) {
-        return "done"; // Req 6.4
-      }
-      return "idle";
-
     case "overview":
       return "idle"; // Req 6.11
+
+    case "trade":
+      return "idle"; // Trade page — no status source
 
     default: {
       // Exhaustiveness check — if a new NavTabId is added without a case

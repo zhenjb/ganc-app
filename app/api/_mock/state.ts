@@ -16,6 +16,7 @@ export const mockState: AppState = {
     amount: "100",
     txHash: "0x6f9b6f1e10acdf78f5563eb8376906036307846f588317c4594e2d9d67c55ca8",
     createdAt: "2026-06-28T06:00:00Z",
+    processed: true,
   },
   latestWithdrawRequest: {
     id: "wd-onchain11-1782629532",
