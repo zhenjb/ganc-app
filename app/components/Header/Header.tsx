@@ -228,12 +228,12 @@ export function Header(): React.JSX.Element {
           <Link
             href="/overview"
             className={styles.brandLink}
-            aria-label="ZKDEX MVP — Overview"
+            aria-label="ZKDEX — Overview"
           >
             <span className={styles.brandLogo}>
               <BrandLogo />
             </span>
-            <span className={styles.brandText}>ZKDEX MVP</span>
+            <span className={styles.brandText}>ZKDEX</span>
           </Link>
         </div>
 

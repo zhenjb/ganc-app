@@ -10,6 +10,7 @@ import { OrderForm } from "@/app/(pages)/trade/_components/OrderForm/OrderForm";
 import { Balances } from "@/app/(pages)/trade/_components/Balances/Balances";
 import { OrderBook } from "@/app/(pages)/trade/_components/OrderBook/OrderBook";
 import { OpenOrders } from "@/app/(pages)/trade/_components/OpenOrders/OpenOrders";
+import { CandleChart } from "@/app/(pages)/trade/_components/CandleChart/CandleChart";
 import styles from "./TradeScreen.module.scss";
 
 interface TradeScreenProps {

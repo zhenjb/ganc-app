@@ -30,6 +30,15 @@
   }
 }
 
+.chartCard {
+  width: 100%;
+  min-height: 320px;
+
+  @include m.tablet-and-up {
+    min-height: 360px;
+  }
+}
+
 .rightCard {
   // Allow it to span remaining space
 }

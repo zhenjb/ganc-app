@@ -33,9 +33,11 @@ export function OpenOrders({
     return openOrders.filter((o) => o.market === market);
   }, [openOrders, market]);
 
-  // Filter fills for the owner
+  // Filter fills for the owner, sorted newest first by timestamp
   const filteredFills = useMemo(() => {
-    return fills.filter((f) => f.buyer === owner || f.seller === owner);
+    return fills
+      .filter((f) => f.buyer === owner || f.seller === owner)
+      .sort((a, b) => b.timestamp - a.timestamp);
   }, [fills, owner]);
 
   return (
@@ -149,7 +151,7 @@ export function OpenOrders({
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Trade ID</th>
+                <th>No</th>
                 <th>Market</th>
                 <th>Side</th>
                 <th>Price</th>
@@ -158,11 +160,11 @@ export function OpenOrders({
               </tr>
             </thead>
             <tbody>
-              {filteredFills.map((fill) => {
+              {filteredFills.map((fill, index) => {
                 const isBuyer = fill.buyer === owner;
                 return (
                   <tr key={fill.tradeId}>
-                    <td>{fill.tradeId}</td>
+                    <td>{index + 1}</td>
                     <td>{fill.market}</td>
                     <td
                       className={isBuyer ? styles.buyTag : styles.sellTag}

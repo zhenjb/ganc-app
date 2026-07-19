@@ -124,6 +124,18 @@ export async function broadcastDeposit(
 
     // Sanity: connected wallet must match the configured chain.
     const { api } = pickProvider();
+
+    // Keep the fee we pass (defaultFeeAmount) instead of letting Keplr
+    // recompute it via gasPriceStep × gas (which would charge the user).
+    api.defaultOptions = {
+      ...api.defaultOptions,
+      sign: {
+        ...api.defaultOptions?.sign,
+        preferNoSetFee: true,
+        disableBalanceCheck: true,
+      },
+    };
+
     const key = await api.getKey(spec.chainId);
     if (key.bech32Address !== msg.creator) {
       throw new Error(

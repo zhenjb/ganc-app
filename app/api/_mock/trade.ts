@@ -155,32 +155,60 @@ let mockOpenOrders: OpenOrder[] = [
 ];
 
 /** Trade fills store */
-const mockFills: Fill[] = [
-  {
-    tradeId: "trade-001",
-    market: "ATOM/USDC",
-    makerOrderHash: "0xmaker001",
-    takerOrderHash: "0xabc123def456789001",
-    price: "10.45",
-    qty: "60",
-    makerFee: "0.063",
-    takerFee: "0.126",
-    buyer: "cosmos1alice",
-    seller: "cosmos1bob",
-  },
-  {
-    tradeId: "trade-002",
-    market: "ETH/USDC",
-    makerOrderHash: "0xmaker002",
-    takerOrderHash: "0xtaker002",
-    price: "1820.00",
-    qty: "0.5",
-    makerFee: "0.91",
-    takerFee: "1.82",
-    buyer: "cosmos1bob",
-    seller: "cosmos1alice",
-  },
-];
+const mockFills: Fill[] = generateMockFills();
+
+/** Generate realistic trade fills with timestamps for the last 2 hours */
+function generateMockFills(): Fill[] {
+  const now = Math.floor(Date.now() / 1000);
+  const twoHoursAgo = now - 7200;
+  const fills: Fill[] = [];
+
+  // ATOM/USDC fills — simulate price movement around 10.50
+  let atomPrice = 10.35;
+  let fillId = 1;
+  for (let t = twoHoursAgo; t < now; t += 15 + Math.floor(Math.random() * 30)) {
+    // Random walk
+    atomPrice += (Math.random() - 0.48) * 0.04;
+    atomPrice = Math.max(10.10, Math.min(10.90, atomPrice));
+
+    fills.push({
+      tradeId: `trade-${String(fillId++).padStart(4, "0")}`,
+      market: "ATOM/USDC",
+      makerOrderHash: `0xmaker${fillId.toString(16).padStart(8, "0")}`,
+      takerOrderHash: `0xtaker${fillId.toString(16).padStart(8, "0")}`,
+      price: atomPrice.toFixed(2),
+      qty: (Math.random() * 200 + 10).toFixed(1),
+      makerFee: (atomPrice * 0.001).toFixed(3),
+      takerFee: (atomPrice * 0.002).toFixed(3),
+      buyer: Math.random() > 0.5 ? "cosmos1alice" : "cosmos1bob",
+      seller: Math.random() > 0.5 ? "cosmos1bob" : "cosmos1alice",
+      timestamp: t,
+    });
+  }
+
+  // ETH/USDC fills — simulate price movement around 1820
+  let ethPrice = 1815.0;
+  for (let t = twoHoursAgo; t < now; t += 20 + Math.floor(Math.random() * 40)) {
+    ethPrice += (Math.random() - 0.47) * 2.5;
+    ethPrice = Math.max(1800, Math.min(1845, ethPrice));
+
+    fills.push({
+      tradeId: `trade-${String(fillId++).padStart(4, "0")}`,
+      market: "ETH/USDC",
+      makerOrderHash: `0xmaker${fillId.toString(16).padStart(8, "0")}`,
+      takerOrderHash: `0xtaker${fillId.toString(16).padStart(8, "0")}`,
+      price: ethPrice.toFixed(2),
+      qty: (Math.random() * 5 + 0.1).toFixed(3),
+      makerFee: (ethPrice * 0.0005).toFixed(2),
+      takerFee: (ethPrice * 0.001).toFixed(2),
+      buyer: Math.random() > 0.5 ? "cosmos1alice" : "cosmos1bob",
+      seller: Math.random() > 0.5 ? "cosmos1bob" : "cosmos1alice",
+      timestamp: t,
+    });
+  }
+
+  return fills;
+}
 
 let orderSequence = 4;
 
@@ -233,14 +261,26 @@ export function validateOrder(input: OrderInput): PlaceOrderValidation {
 
   // Tick size check
   const tickSize = parseFloat(market.tickSize);
-  if (tickSize > 0 && Math.abs(price % tickSize) > 1e-10) {
-    return { valid: false, reason: "tick_violation" };
+  if (tickSize > 0) {
+    const decimals = (market.tickSize.split(".")[1] ?? "").length;
+    const factor = Math.pow(10, decimals);
+    const priceInt = Math.round(price * factor);
+    const tickInt = Math.round(tickSize * factor);
+    if (priceInt % tickInt !== 0) {
+      return { valid: false, reason: "tick_violation" };
+    }
   }
 
   // Lot size check
   const lotSize = parseFloat(market.lotSize);
-  if (lotSize > 0 && Math.abs(qty % lotSize) > 1e-10) {
-    return { valid: false, reason: "lot_violation" };
+  if (lotSize > 0) {
+    const decimals = (market.lotSize.split(".")[1] ?? "").length;
+    const factor = Math.pow(10, decimals);
+    const qtyInt = Math.round(qty * factor);
+    const lotInt = Math.round(lotSize * factor);
+    if (qtyInt % lotInt !== 0) {
+      return { valid: false, reason: "lot_violation" };
+    }
   }
 
   // Balance check
@@ -268,40 +308,156 @@ export function placeOrderMock(input: OrderInput): {
   const orderHash =
     "0x" + crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "").slice(0, 8);
 
-  const newOrder: OpenOrder = {
-    orderId,
-    orderHash,
-    owner: input.owner,
-    market: input.market,
-    side: input.side,
-    price: input.price,
-    qty: input.qty,
-    remaining: input.qty,
-    filled: "0",
-    status: "open",
-    sequence: orderSequence,
-  };
+  const market = mockMarkets.find((m) => m.market === input.market);
+  const book = mockOrderbooks[input.market];
+  const price = parseFloat(input.price);
+  let remainingQty = parseFloat(input.qty);
+  let filledQty = 0;
 
-  mockOpenOrders.push(newOrder);
+  // --- Order matching engine ---
+  if (book) {
+    // Buy order matches against asks (lowest first); sell matches against bids (highest first)
+    const oppositeBook = input.side === "buy" ? book.asks : book.bids;
 
-  // Reserve balance
-  const balances = mockReservedBalances[input.owner];
-  if (balances) {
-    const market = mockMarkets.find((m) => m.market === input.market);
-    if (market) {
-      if (input.side === "buy") {
-        const quoteBal = balances.find((b) => b.denom === market.quoteDenom);
-        if (quoteBal) {
-          const needed = parseFloat(input.price) * parseFloat(input.qty);
-          quoteBal.available = (parseFloat(quoteBal.available) - needed).toFixed(4);
-          quoteBal.reserved = (parseFloat(quoteBal.reserved) + needed).toFixed(4);
-        }
+    while (remainingQty > 0 && oppositeBook.length > 0) {
+      const bestLevel = oppositeBook[0];
+      const bestPrice = parseFloat(bestLevel.price);
+
+      // Check if price crosses
+      const crosses =
+        input.side === "buy" ? price >= bestPrice : price <= bestPrice;
+      if (!crosses) break;
+
+      const availableQty = parseFloat(bestLevel.qty);
+      const fillQty = Math.min(remainingQty, availableQty);
+      const fillPrice = bestPrice; // Match at maker's price
+
+      // Create a fill record
+      const tradeId = `trade-match-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const makerFee = market
+        ? ((fillPrice * fillQty * market.makerFeeBps) / 10000).toFixed(4)
+        : "0";
+      const takerFee = market
+        ? ((fillPrice * fillQty * market.takerFeeBps) / 10000).toFixed(4)
+        : "0";
+
+      mockFills.push({
+        tradeId,
+        market: input.market,
+        makerOrderHash: `0xbook_${bestLevel.price}`,
+        takerOrderHash: orderHash,
+        price: bestLevel.price,
+        qty: fillQty.toFixed(4),
+        makerFee,
+        takerFee,
+        buyer: input.side === "buy" ? input.owner : "counterparty",
+        seller: input.side === "sell" ? input.owner : "counterparty",
+        timestamp: Math.floor(Date.now() / 1000),
+      });
+
+      // Update order book level
+      const newLevelQty = availableQty - fillQty;
+      if (newLevelQty <= 0.0001) {
+        oppositeBook.shift(); // Remove exhausted level
       } else {
+        bestLevel.qty = newLevelQty.toFixed(1);
+      }
+
+      remainingQty -= fillQty;
+      filledQty += fillQty;
+    }
+
+    // Update best bid/ask after matching
+    if (book.bids.length > 0) book.bestBid = book.bids[0].price;
+    else book.bestBid = "0";
+    if (book.asks.length > 0) book.bestAsk = book.asks[0].price;
+    else book.bestAsk = "0";
+  }
+
+  // --- Determine order status ---
+  const totalQty = parseFloat(input.qty);
+  let orderStatus: "open" | "partial" | "filled";
+  if (remainingQty <= 0.0001) {
+    orderStatus = "filled";
+  } else if (filledQty > 0) {
+    orderStatus = "partial";
+  } else {
+    orderStatus = "open";
+  }
+
+  // --- If there's remaining qty, add to order book and open orders ---
+  if (remainingQty > 0.0001) {
+    const newOrder: OpenOrder = {
+      orderId,
+      orderHash,
+      owner: input.owner,
+      market: input.market,
+      side: input.side,
+      price: input.price,
+      qty: input.qty,
+      remaining: remainingQty.toFixed(4),
+      filled: filledQty.toFixed(4),
+      status: orderStatus === "filled" ? "open" : orderStatus,
+      sequence: orderSequence,
+    };
+    mockOpenOrders.push(newOrder);
+
+    // Add remaining qty to the order book on our side
+    if (book) {
+      const levels = input.side === "buy" ? book.bids : book.asks;
+      const existingIdx = levels.findIndex((l) => l.price === input.price);
+      if (existingIdx !== -1) {
+        const existing = levels[existingIdx];
+        existing.qty = (parseFloat(existing.qty) + remainingQty).toFixed(1);
+      } else {
+        levels.push({ price: input.price, qty: remainingQty.toFixed(1) });
+        if (input.side === "buy") {
+          levels.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        } else {
+          levels.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        }
+      }
+      // Update best bid/ask
+      if (book.bids.length > 0) book.bestBid = book.bids[0].price;
+      if (book.asks.length > 0) book.bestAsk = book.asks[0].price;
+    }
+  }
+
+  // --- Update balances ---
+  const balances = mockReservedBalances[input.owner];
+  if (balances && market) {
+    if (input.side === "buy") {
+      const quoteBal = balances.find((b) => b.denom === market.quoteDenom);
+      if (quoteBal) {
+        // Filled portion: deduct from available (already spent)
+        // Remaining portion: move from available to reserved
+        const filledCost = filledQty * price;
+        const reservedCost = remainingQty * price;
+        quoteBal.available = (parseFloat(quoteBal.available) - filledCost - reservedCost).toFixed(4);
+        quoteBal.reserved = (parseFloat(quoteBal.reserved) + reservedCost).toFixed(4);
+      }
+      // Credit filled base tokens
+      if (filledQty > 0) {
         const baseBal = balances.find((b) => b.denom === market.baseDenom);
         if (baseBal) {
-          const qty = parseFloat(input.qty);
-          baseBal.available = (parseFloat(baseBal.available) - qty).toFixed(4);
-          baseBal.reserved = (parseFloat(baseBal.reserved) + qty).toFixed(4);
+          baseBal.available = (parseFloat(baseBal.available) + filledQty).toFixed(4);
+        }
+      }
+    } else {
+      const baseBal = balances.find((b) => b.denom === market.baseDenom);
+      if (baseBal) {
+        // Filled portion: deduct from available (already sold)
+        // Remaining portion: move from available to reserved
+        baseBal.available = (parseFloat(baseBal.available) - filledQty - remainingQty).toFixed(4);
+        baseBal.reserved = (parseFloat(baseBal.reserved) + remainingQty).toFixed(4);
+      }
+      // Credit filled quote tokens (sold at match prices)
+      if (filledQty > 0) {
+        const quoteBal = balances.find((b) => b.denom === market.quoteDenom);
+        if (quoteBal) {
+          // Use total filled value from fills (sum of fillPrice * fillQty)
+          const filledValue = filledQty * price; // Simplified: use order price
+          quoteBal.available = (parseFloat(quoteBal.available) + filledValue).toFixed(4);
         }
       }
     }
@@ -313,9 +469,9 @@ export function placeOrderMock(input: OrderInput): {
     state: {
       orderId,
       orderHash,
-      status: "open",
-      remaining: input.qty,
-      filled: "0",
+      status: orderStatus === "filled" ? "filled" : "open",
+      remaining: remainingQty > 0.0001 ? remainingQty.toFixed(4) : "0",
+      filled: filledQty.toFixed(4),
     },
   };
 }
@@ -335,6 +491,26 @@ export function cancelOrderMock(
   const order = mockOpenOrders[idx];
   if (order.owner !== owner)
     return { ok: false, status: 403, message: "forbidden" };
+
+  // Remove order's remaining qty from order book
+  const book = mockOrderbooks[order.market];
+  if (book) {
+    const levels = order.side === "buy" ? book.bids : book.asks;
+    const levelIdx = levels.findIndex((l) => l.price === order.price);
+    if (levelIdx !== -1) {
+      const remaining = parseFloat(order.remaining);
+      const currentQty = parseFloat(levels[levelIdx].qty);
+      const newQty = currentQty - remaining;
+      if (newQty <= 0) {
+        levels.splice(levelIdx, 1);
+      } else {
+        levels[levelIdx].qty = newQty.toFixed(1);
+      }
+      // Update best bid/ask
+      if (book.bids.length > 0) book.bestBid = book.bids[0].price;
+      if (book.asks.length > 0) book.bestAsk = book.asks[0].price;
+    }
+  }
 
   // Release reserved balance
   const balances = mockReservedBalances[owner];

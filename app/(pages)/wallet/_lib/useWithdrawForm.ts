@@ -217,7 +217,9 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
       setHistory((prev) => [claimedRecord, ...prev]);
       setPhase("done");
 
-      // Refresh state to reflect updated balances
+      // Refresh state to reflect updated balances.
+      // Small delay so the backend has time to process the on-chain event.
+      await new Promise((r) => setTimeout(r, 1500));
       try {
         await refresh();
       } catch {

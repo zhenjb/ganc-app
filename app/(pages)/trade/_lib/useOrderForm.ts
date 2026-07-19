@@ -61,15 +61,23 @@ export function useOrderForm(
     const amountNum = parseFloat(amount);
 
     if (tickSize > 0) {
-      const remainder = priceNum % tickSize;
-      if (Math.abs(remainder) > 1e-10) {
+      // Use integer math to avoid floating-point precision issues
+      // e.g. 10.50 % 0.01 might give 0.00999... instead of 0
+      const decimals = (market.tickSize.split(".")[1] ?? "").length;
+      const factor = Math.pow(10, decimals);
+      const priceInt = Math.round(priceNum * factor);
+      const tickInt = Math.round(tickSize * factor);
+      if (priceInt % tickInt !== 0) {
         return `Price must be a multiple of ${market.tickSize} (tick size).`;
       }
     }
 
     if (lotSize > 0) {
-      const remainder = amountNum % lotSize;
-      if (Math.abs(remainder) > 1e-10) {
+      const decimals = (market.lotSize.split(".")[1] ?? "").length;
+      const factor = Math.pow(10, decimals);
+      const amountInt = Math.round(amountNum * factor);
+      const lotInt = Math.round(lotSize * factor);
+      if (amountInt % lotInt !== 0) {
         return `Amount must be a multiple of ${market.lotSize} (lot size).`;
       }
     }

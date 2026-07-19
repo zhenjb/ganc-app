@@ -67,6 +67,8 @@ export interface Fill {
   takerFee: string;
   buyer: string;
   seller: string;
+  /** Unix timestamp in seconds when the trade was executed */
+  timestamp: number;
 }
 
 export interface FillsResponse {
