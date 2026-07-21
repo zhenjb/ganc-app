@@ -64,4 +64,7 @@ export interface AppState {
   latestBatchCommitments?: BatchCommitments | null;
   latestProof?: ProofBundle | null;
   latestWithdrawRecords?: WithdrawRecord | WithdrawRecord[] | null;
+
+  /** Available denominations reported by the backend. */
+  denoms?: string[];
 }

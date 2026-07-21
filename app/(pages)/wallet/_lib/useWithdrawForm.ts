@@ -62,10 +62,10 @@ function parseDefaultDestination(
  */
 export function useWithdrawForm(): UseWithdrawFormReturn {
   const { state, refresh } = useAppStateContext();
-
+  console.log(state?.denoms)
   const [formState, setFormState] = useState<WithdrawRequestFormState>(() => ({
     destination: parseDefaultDestination(state?.userBalances),
-    denom: "USDT",
+    denom: state?.denoms?.[0] ?? "USDT",
     amount: "",
   }));
 

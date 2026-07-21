@@ -62,7 +62,7 @@ export function useDepositForm(): UseDepositFormReturn {
   // Form state — initialized with defaults derived from AppState.
   const [formState, setFormState] = useState<DepositFormState>(() => ({
     depositor: parseDefaultDepositor(state?.userBalances),
-    denom: "USDT",
+    denom: state?.denoms?.[0] ?? "USDT",
     amount: "",
   }));
 

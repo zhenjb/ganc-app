@@ -24,6 +24,8 @@ export interface DepositFormProps {
   onFieldChange: (field: keyof DepositFormState, value: string) => void;
   onSubmit: () => void;
   submitError: string | null;
+  /** Available denominations from the backend. Falls back to ["USDT"]. */
+  denoms?: string[];
 }
 
 /**
@@ -54,6 +56,8 @@ function isSubmitDisabled(
   );
 }
 
+const DEFAULT_DENOMS = ["USDT"];
+
 export function DepositForm({
   formState,
   errors,
@@ -63,6 +67,7 @@ export function DepositForm({
   onFieldChange,
   onSubmit,
   submitError,
+  denoms = DEFAULT_DENOMS,
 }: DepositFormProps): React.JSX.Element {
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,7 +131,11 @@ export function DepositForm({
           disabled={disabled}
           aria-label="Select denomination"
         >
-          <option value="USDT">USDT</option>
+          {denoms.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
         </select>
       </div>
 

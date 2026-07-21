@@ -137,6 +137,7 @@ export function DepositScreen({
                 onFieldChange={setField}
                 onSubmit={handleSubmit}
                 submitError={submitError}
+                denoms={state.denoms}
               />
             }
             withdrawContent={
@@ -149,6 +150,7 @@ export function DepositScreen({
                 onFieldChange={wdSetField}
                 onSubmit={wdHandleSubmit}
                 submitError={wdSubmitError}
+                denoms={state.denoms}
               />
             }
           />

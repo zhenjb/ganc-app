@@ -52,4 +52,5 @@ export const mockState: AppState = {
   depositStatus: "processed",
   withdrawStatus: "processed",
   batchStatus: "settled",
+  denoms: ["USDT"],
 };

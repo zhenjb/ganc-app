@@ -166,5 +166,6 @@ export function normalizeState(input: unknown): AppState {
     ),
     latestProof: (r.latestProof as AppState["latestProof"]) ?? null,
     latestWithdrawRecords: normalizeWithdrawList(r.latestWithdrawRecords),
+    denoms: (r.denoms as string[]) ?? []
   };
 }

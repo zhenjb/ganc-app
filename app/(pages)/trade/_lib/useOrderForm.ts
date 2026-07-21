@@ -115,13 +115,16 @@ export function useOrderForm(
 
     setSubmitting(true);
     try {
+      // expiry = current unix timestamp (seconds) + 1 hour (3600s)
+      const expiry = String(Math.floor(Date.now() / 1000) + 86400);
+
       const input: OrderInput = {
         owner,
         market: market.market,
         side,
         price,
         qty: amount,
-        expiry: "2000000",
+        expiry,
         nonce: Date.now().toString(),
         signature: "0x", // Placeholder — real signing handled externally
       };
