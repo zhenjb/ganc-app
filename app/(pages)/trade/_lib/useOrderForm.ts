@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { placeOrder } from "@/app/lib/services/tradeApi";
+import { signOrderAdr36 } from "@/app/lib/services/wallet/orderSign";
 import type { Market, OrderInput, ReservedBalance } from "@/app/lib/interfaces/trade";
 
 export type OrderSide = "buy" | "sell";
@@ -115,19 +116,27 @@ export function useOrderForm(
 
     setSubmitting(true);
     try {
-      // expiry = current unix timestamp (seconds) + 1 hour (3600s)
+      // expiry = absolute unix-seconds deadline (now + 24h). The backend compares
+      // this against its own clock (order_validation.go), so it must be a future
+      // unix-SECONDS value — not milliseconds.
       const expiry = String(Math.floor(Date.now() / 1000) + 86400);
+      const nonce = Date.now().toString();
 
-      const input: OrderInput = {
+      // Sign the EXACT fields we are about to POST (sign-then-send). Signing a
+      // stale expiry/nonce and sending different values would yield bad_signature.
+      // The wallet signs the canonical bytes via ADR-036; the backend binds the
+      // recovered pubkey to `owner`.
+      const signable = {
         owner,
         market: market.market,
         side,
         price,
         qty: amount,
         expiry,
-        nonce: Date.now().toString(),
-        signature: "0x", // Placeholder — real signing handled externally
+        nonce,
       };
+      const { signature, pubkey } = await signOrderAdr36(signable);
+      const input: OrderInput = { ...signable, signature, pubkey };
 
       const result = await placeOrder(input);
       if (result.ok) {

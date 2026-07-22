@@ -97,6 +97,11 @@ export interface OrderInput {
   expiry: string;
   nonce: string;
   signature: string;
+  /**
+   * Base64 compressed secp256k1 public key of the signer. Sent only for real
+   * ADR-036 order auth (backend ORDER_SIG_MODE=adr36); omitted in mock mode.
+   */
+  pubkey?: string;
 }
 
 /** Order state returned inside OrderResponse */
