@@ -35,3 +35,10 @@ export interface WithdrawClaimResponse {
   txHash: HexString;
   claimedAt: string;
 }
+
+/**
+ * Response body for `GET /api/withdraws` — paginated withdraw history.
+ */
+export interface WithdrawListResponse {
+  withdraws: WithdrawRecord[];
+}
