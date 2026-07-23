@@ -99,7 +99,7 @@ export function OverviewScreen(): React.JSX.Element {
 
         {/* Feature cards section */}
         <section className={styles.features} aria-label="Platform features">
-          <h2 className={styles.featuresHeading}>Why ZKDEX?</h2>
+          <h2 className={styles.featuresHeading}>Why GANC?</h2>
           <div className={styles.featureGrid}>
             {FEATURES.map((feature) => (
               <article key={feature.title} className={styles.featureCard}>

@@ -23,8 +23,9 @@ export interface CallOptions {
   timeoutMs?: number;
 }
 
-export async function getState(opts?: CallOptions): Promise<AppState> {
-  const raw = await request<unknown>("/api/state", { method: "GET", ...opts });
+export async function getState(opts?: CallOptions & { owner?: string }): Promise<AppState> {
+  const ownerParam = opts?.owner ? `?owner=${encodeURIComponent(opts.owner)}` : "";
+  const raw = await request<unknown>(`/api/state${ownerParam}`, { method: "GET", ...opts });
   return normalizeState(raw);
 }
 

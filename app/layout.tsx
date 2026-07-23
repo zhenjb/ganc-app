@@ -41,8 +41,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ZKDEX",
-  description: "ZKDEX dashboard — deposit, batch, prove, submit, claim.",
+  title: "GANC",
+  description: "GANC dashboard — deposit, batch, prove, submit, claim.",
 };
 
 /**

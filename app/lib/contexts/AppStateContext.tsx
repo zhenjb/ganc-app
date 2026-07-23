@@ -11,6 +11,7 @@ import {
   useAppState,
   type UseAppStateResult,
 } from "@/app/lib/hooks/useAppState";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { ApiError } from "@/app/lib/interfaces/api";
 
 /**
@@ -22,10 +23,8 @@ const STATE_FETCH_TIMEOUT_MS = 3000;
 const AppStateContext = createContext<UseAppStateResult | null>(null);
 
 /**
- * Provider that calls `useAppState()` once and exposes its return value
- * via React Context. Mount this at `app/layout.tsx` so every page in
- * `app/(pages)/*` shares the same race-free `getState()` consumption
- * (Req 16.3, 16.5).
+ * Provider that calls `useAppState(owner)` and exposes its return value
+ * via React Context. Only fetches state when a wallet address is available.
  *
  * Adds a 3000 ms watchdog: when a fetch is in-flight and no `AppState`
  * has arrived yet, after `STATE_FETCH_TIMEOUT_MS` a synthetic
@@ -35,21 +34,18 @@ const AppStateContext = createContext<UseAppStateResult | null>(null);
  * as soon as a successful response arrives.
  */
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const value = useAppState();
+  const { address } = useWalletContext();
+  const value = useAppState(address);
   const { state, inFlight, error } = value;
   const [timeoutError, setTimeoutError] = useState<ApiError | null>(null);
 
   useEffect(() => {
     // Only arm the watchdog while a fetch is in flight and no state has
-    // been observed yet. Once `state` is non-null, the bail-out below
-    // also lets the cleanup clear any pending timer from a prior render
-    // (Req 11.2, 16.5).
+    // been observed yet.
     if (state != null || !inFlight) {
       return;
     }
     const handle = setTimeout(() => {
-      // Log exactly once per watchdog fire for developer diagnostics
-      // (Req 10.4 — one `console.error` per failure).
       console.error("[FE-01] state fetch exceeded 3000ms");
       setTimeoutError(new ApiError("Internal Server Error", 500));
     }, STATE_FETCH_TIMEOUT_MS);
@@ -58,11 +54,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
   }, [inFlight, state]);
 
-  // Mask any stale synthetic error once a successful state arrives, so the
-  // next render sees a clean `error` value without needing to setState in
-  // the effect body. Prefer the real hook error over the synthetic one so
-  // any backend-originated `ApiError` always wins, while a hung fetch
-  // still falls back to the NormalizedError (Req 10.1, 11.2).
   const effectiveTimeoutError = state != null ? null : timeoutError;
   const merged: UseAppStateResult = {
     ...value,
@@ -78,8 +69,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 /**
  * Hook for consuming the shared `AppState`. Throws when used outside an
- * `<AppStateProvider>` so misconfiguration fails loudly during development
- * (Req 16.4).
+ * `<AppStateProvider>` so misconfiguration fails loudly during development.
  */
 export function useAppStateContext(): UseAppStateResult {
   const ctx = useContext(AppStateContext);

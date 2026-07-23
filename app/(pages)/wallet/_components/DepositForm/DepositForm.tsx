@@ -100,8 +100,8 @@ export function DepositForm({
           className={`${styles.input}${errors.depositor ? ` ${styles.inputError}` : ""}`}
           value={formState.depositor}
           onChange={(e) => onFieldChange("depositor", e.target.value)}
-          disabled={disabled}
-          placeholder="cosmos1..."
+          disabled
+          placeholder="Connect wallet to fill address"
           aria-invalid={errors.depositor !== null}
           aria-describedby={
             errors.depositor ? "deposit-depositor-error" : undefined

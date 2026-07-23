@@ -90,8 +90,8 @@ export function WithdrawRequestForm({
           className={`${styles.input}${errors.destination ? ` ${styles.inputError}` : ""}`}
           value={formState.destination}
           onChange={(e) => onFieldChange("destination", e.target.value)}
-          disabled={disabled}
-          placeholder="cosmos1..."
+          disabled
+          placeholder="Connect wallet to fill address"
           aria-invalid={errors.destination !== null}
           aria-describedby={
             errors.destination ? "withdraw-destination-error" : undefined

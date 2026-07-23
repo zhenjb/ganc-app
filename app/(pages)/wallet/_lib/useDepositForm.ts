@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getDepositById, postDeposit } from "@/app/lib/services/api";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import type { DepositRecord } from "@/app/lib/interfaces/deposit";
 import type { WalletConnection } from "@/app/lib/interfaces/wallet";
 import type {
@@ -13,7 +14,6 @@ import type {
   WalletState,
 } from "@/app/(pages)/wallet/_types";
 import {
-  validateDepositor,
   validateAmount,
   validateAmountWarning,
 } from "@/app/(pages)/wallet/_lib/validate";
@@ -56,15 +56,24 @@ function parseDefaultDepositor(
  */
 export function useDepositForm(): UseDepositFormReturn {
   const { state, refresh } = useAppStateContext();
+  const { address: walletAddress } = useWalletContext();
 
   const isRealMode = state?.mode === "local";
 
   // Form state — initialized with defaults derived from AppState.
   const [formState, setFormState] = useState<DepositFormState>(() => ({
-    depositor: parseDefaultDepositor(state?.userBalances),
+    depositor: walletAddress ?? parseDefaultDepositor(state?.userBalances),
     denom: state?.denoms?.[0] ?? "USDT",
     amount: "",
   }));
+
+  // Sync depositor field when wallet address changes
+  useEffect(() => {
+    if (walletAddress) {
+      setFormState((prev) => ({ ...prev, depositor: walletAddress }));
+      setErrors((prev) => ({ ...prev, depositor: null }));
+    }
+  }, [walletAddress]);
 
   const [errors, setErrors] = useState<ValidationErrors>({
     depositor: null,
@@ -94,23 +103,16 @@ export function useDepositForm(): UseDepositFormReturn {
 
   /**
    * Update a single form field and run validation immediately.
-   * In real mode the depositor field is derived from the wallet address and
-   * cannot be edited directly — we silently ignore depositor writes there.
+   * The depositor field is always derived from the connected wallet address
+   * and cannot be edited directly — we silently ignore depositor writes.
    */
   const setField = useCallback(
     (field: keyof DepositFormState, value: string) => {
-      if (field === "depositor" && isRealMode) {
+      if (field === "depositor") {
         return;
       }
       setFormState((prev) => ({ ...prev, [field]: value }));
       setSubmitError(null);
-
-      if (field === "depositor") {
-        setErrors((prev) => ({
-          ...prev,
-          depositor: validateDepositor(value),
-        }));
-      }
 
       if (field === "amount") {
         const amountError = value === "" ? null : validateAmount(value);
@@ -128,16 +130,11 @@ export function useDepositForm(): UseDepositFormReturn {
         }
       }
 
-      if (
-        (field === "depositor" || field === "denom") &&
-        formState.amount !== ""
-      ) {
-        const newDepositor =
-          field === "depositor" ? value : formState.depositor;
-        const newDenom = field === "denom" ? value : formState.denom;
+      if (field === "denom" && formState.amount !== "") {
+        const newDenom = value;
         const amountError = validateAmount(formState.amount);
         if (!amountError && state) {
-          const balanceKey = `${newDepositor}/${newDenom}`;
+          const balanceKey = `${formState.depositor}/${newDenom}`;
           const currentBalance =
             state.userBalances[balanceKey] ?? "0";
           setWarnings({
@@ -150,7 +147,6 @@ export function useDepositForm(): UseDepositFormReturn {
       formState.depositor,
       formState.denom,
       formState.amount,
-      isRealMode,
       state,
     ]
   );

@@ -15,7 +15,7 @@ export interface UseAppStateResult {
   refresh: () => Promise<void>;
 }
 
-export function useAppState(): UseAppStateResult {
+export function useAppState(owner: string | null): UseAppStateResult {
   const [state, setState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<ApiError | null>(null);
@@ -23,8 +23,16 @@ export function useAppState(): UseAppStateResult {
 
   const currentCtrlRef = useRef<AbortController | null>(null);
   const mountedRef = useRef<boolean>(true);
+  const ownerRef = useRef<string | null>(owner);
+  ownerRef.current = owner;
 
   const refresh = useCallback(async (): Promise<void> => {
+    const currentOwner = ownerRef.current;
+    if (!currentOwner) {
+      // No owner — don't call API at all
+      return;
+    }
+
     // Abort any previous in-flight call before issuing a new one (Req 7.4).
     currentCtrlRef.current?.abort();
     const ctrl = new AbortController();
@@ -33,7 +41,10 @@ export function useAppState(): UseAppStateResult {
     if (mountedRef.current) setInFlight(true);
 
     try {
-      const next = await getState({ signal: ctrl.signal });
+      const next = await getState({
+        signal: ctrl.signal,
+        owner: currentOwner,
+      });
       // Drop stale results from aborted controllers (Req 7.4, 9.5).
       if (ctrl.signal.aborted || !mountedRef.current) return;
       setState(next);
@@ -41,15 +52,12 @@ export function useAppState(): UseAppStateResult {
     } catch (e: unknown) {
       if (ctrl.signal.aborted || !mountedRef.current) return;
       if (e instanceof ApiError && e.aborted) {
-        // Aborted by the hook itself: do not surface an error.
         return;
       }
       const apiErr =
         e instanceof ApiError ? e : new ApiError("Internal Server Error", 500);
-      // Preserve previous `state` on failure (Req 7.6).
       setError(apiErr);
     } finally {
-      // Only the latest controller flips `inFlight` and `loading` off (Req 7.5).
       if (mountedRef.current && currentCtrlRef.current === ctrl) {
         setInFlight(false);
         setLoading(false);
@@ -59,9 +67,15 @@ export function useAppState(): UseAppStateResult {
 
   useEffect(() => {
     mountedRef.current = true;
-    // Defer the first call so the effect body itself does not trigger
-    // setState synchronously (`react-hooks/set-state-in-effect`). The
-    // race-free contract is unchanged: only the latest controller commits.
+
+    if (!owner) {
+      // No owner — no fetch, state stays null
+      setLoading(false);
+      setState(null);
+      return;
+    }
+
+    setLoading(true);
     queueMicrotask(() => {
       if (mountedRef.current) void refresh();
     });
@@ -69,8 +83,8 @@ export function useAppState(): UseAppStateResult {
       mountedRef.current = false;
       currentCtrlRef.current?.abort();
     };
-    // `refresh` is stable (empty dep array via useCallback).
-  }, [refresh]);
+    // Re-fetch when owner changes
+  }, [owner, refresh]);
 
   return { state, loading, error, inFlight, refresh };
 }

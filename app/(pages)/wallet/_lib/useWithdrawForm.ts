@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { postWithdrawRequest, postWithdrawClaim } from "@/app/lib/services/api";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 import type {
   WithdrawRequestFormState,
@@ -10,7 +11,6 @@ import type {
   WithdrawValidationWarnings,
 } from "@/app/lib/interfaces/withdraw-form";
 import {
-  validateDestination,
   validateWithdrawAmount,
   validateWithdrawAmountWarning,
 } from "@/app/lib/services/withdraw-validate";
@@ -62,9 +62,10 @@ function parseDefaultDestination(
  */
 export function useWithdrawForm(): UseWithdrawFormReturn {
   const { state, refresh } = useAppStateContext();
-  console.log(state?.denoms)
+  const { address: walletAddress } = useWalletContext();
+
   const [formState, setFormState] = useState<WithdrawRequestFormState>(() => ({
-    destination: parseDefaultDestination(state?.userBalances),
+    destination: walletAddress ?? parseDefaultDestination(state?.userBalances),
     denom: state?.denoms?.[0] ?? "USDT",
     amount: "",
   }));
@@ -77,6 +78,14 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
   const [warnings, setWarnings] = useState<WithdrawValidationWarnings>({
     amount: null,
   });
+
+  // Sync destination field when wallet address changes
+  useEffect(() => {
+    if (walletAddress) {
+      setFormState((prev) => ({ ...prev, destination: walletAddress }));
+      setErrors((prev) => ({ ...prev, destination: null }));
+    }
+  }, [walletAddress]);
 
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState<WithdrawPhase>("idle");
@@ -94,15 +103,12 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
 
   const setField = useCallback(
     (field: keyof WithdrawRequestFormState, value: string) => {
+      // Destination is always derived from connected wallet — ignore edits
+      if (field === "destination") {
+        return;
+      }
       setFormState((prev) => ({ ...prev, [field]: value }));
       setSubmitError(null);
-
-      if (field === "destination") {
-        setErrors((prev) => ({
-          ...prev,
-          destination: validateDestination(value),
-        }));
-      }
 
       if (field === "amount") {
         const amountError = value === "" ? null : validateWithdrawAmount(value);
@@ -116,12 +122,11 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
         }
       }
 
-      if ((field === "destination" || field === "denom") && formState.amount !== "") {
-        const nextDest = field === "destination" ? value : formState.destination;
-        const nextDenom = field === "denom" ? value : formState.denom;
+      if (field === "denom" && formState.amount !== "") {
+        const nextDenom = value;
         const amountError = validateWithdrawAmount(formState.amount);
         if (!amountError) {
-          const balance = getCurrentBalance(nextDest, nextDenom);
+          const balance = getCurrentBalance(formState.destination, nextDenom);
           setWarnings({ amount: validateWithdrawAmountWarning(formState.amount, balance) });
         } else {
           setWarnings({ amount: null });

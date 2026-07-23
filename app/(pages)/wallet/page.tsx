@@ -11,25 +11,37 @@
 "use client";
 
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { DepositScreen } from "@/app/(pages)/wallet/_components/DepositScreen/DepositScreen";
+import type { AppState } from "@/app/lib/interfaces/state";
 import styles from "./page.module.scss";
 
-/**
- * DepositPage — client shell for /deposit.
- *
- * Responsibilities:
- *  1. Read { state, refresh, inFlight } from AppStateContext.
- *  2. Render loading skeleton when state is null.
- *  3. Render <DepositScreen> when state is ready.
- */
-export default function DepositPage(): React.JSX.Element {
-  const { state, refresh, inFlight } = useAppStateContext();
+/** Empty state used when wallet is not connected. */
+const EMPTY_STATE: AppState = {
+  mode: "local",
+  currentStateRoot: null,
+  userBalances: {},
+  moduleAccountBalance: {},
+  depositStatus: "none",
+  withdrawStatus: "none",
+  proofStatus: "idle",
+  batchStatus: "none",
+  latestDeposit: null,
+  latestWithdrawRequest: null,
+  latestSettlement: null,
+  latestBatchCommitments: null,
+  latestProof: null,
+  latestWithdrawRecords: null,
+};
 
-  return (
-    <div className={styles.page}>
-      {state != null ? (
-        <DepositScreen state={state} refresh={refresh} inFlight={inFlight} />
-      ) : (
+export default function DepositPage(): React.JSX.Element {
+  const { state, refresh, inFlight, loading } = useAppStateContext();
+  const { address } = useWalletContext();
+
+  // Show skeleton only while actively loading (wallet connected, fetch in progress)
+  if (address && loading && !state) {
+    return (
+      <div className={styles.page}>
         <div
           className={styles.loadingSkeleton}
           role="status"
@@ -40,7 +52,17 @@ export default function DepositPage(): React.JSX.Element {
           <div className={styles.skeletonBlock} />
           <div className={styles.skeletonBlockShort} />
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.page}>
+      <DepositScreen
+        state={state ?? EMPTY_STATE}
+        refresh={refresh}
+        inFlight={inFlight}
+      />
     </div>
   );
 }

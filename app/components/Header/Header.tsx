@@ -44,8 +44,8 @@ import Link from "next/link";
 import { icons } from "@/app/assets";
 import Nav from "@/app/components/Nav/Nav";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { useTheme } from "@/app/lib/hooks/useTheme";
-import { shortenHex } from "@/app/lib/services/format";
 import type { AppState } from "@/app/lib/interfaces/state";
 
 import styles from "./Header.module.scss";
@@ -99,54 +99,50 @@ function ModeBadge({ state, loading }: ModeBadgeProps): React.JSX.Element | null
 }
 
 // -----------------------------------------------------------------------------
-// StateRootBadge — reads `state.currentStateRoot`
+// WalletButton — connect wallet or show connected address
 // -----------------------------------------------------------------------------
 
-interface StateRootBadgeProps {
-  state: AppState | null;
-  loading: boolean;
-}
+function WalletButton(): React.JSX.Element {
+  const { address, connecting, connect, disconnect } = useWalletContext();
 
-/** Literal placeholder rendered when `currentStateRoot` is null/undefined (Req 5.4). */
-const STATE_ROOT_PLACEHOLDER = "—";
-
-function StateRootBadge({
-  state,
-  loading,
-}: StateRootBadgeProps): React.JSX.Element | null {
-  // Skeleton while the very first fetch is in flight (Req 5.5, 11.1).
-  if (loading && !state) {
+  if (connecting) {
     return (
       <span
-        className={styles.skeletonBadge}
-        aria-hidden="true"
-        data-testid="header-stateroot-skeleton"
-      />
+        className={cx(styles.badge, styles.badgeWallet)}
+        role="status"
+        aria-label="Connecting wallet"
+      >
+        Connecting…
+      </span>
     );
   }
-  if (!state) {
-    return null;
+
+  if (address) {
+    const short = `${address.slice(0, 10)}…${address.slice(-4)}`;
+    return (
+      <button
+        type="button"
+        className={cx(styles.badge, styles.badgeWallet)}
+        onClick={disconnect}
+        aria-label={`Disconnect wallet ${address}`}
+        title={address}
+        data-testid="header-wallet-badge"
+      >
+        <span className={styles.badgeValue}>{short}</span>
+      </button>
+    );
   }
 
-  const value = state.currentStateRoot;
-  // `shortenHex(value, 6, 4)` produces the "0xABCDEF…1234" form mandated by
-  // Req 5.3 (6 hex chars after `0x`, separator `…`, 4 trailing hex chars).
-  // For null / undefined we surface the literal placeholder while keeping
-  // the "State root" label visible (Req 5.4).
-  const display =
-    value == null || value === ""
-      ? STATE_ROOT_PLACEHOLDER
-      : shortenHex(value, 6, 4);
-
   return (
-    <span
-      className={styles.badge}
-      role="status"
-      data-testid="header-stateroot-badge"
+    <button
+      type="button"
+      className={cx(styles.badge, styles.badgeConnect)}
+      onClick={connect}
+      aria-label="Connect wallet"
+      data-testid="header-wallet-connect"
     >
-      <span className={styles.badgeLabel}>State root</span>
-      <span className={styles.badgeValue}>{display}</span>
-    </span>
+      Connect Wallet
+    </button>
   );
 }
 
@@ -191,16 +187,25 @@ function BrandLogo(): React.JSX.Element {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
     >
-      <rect x="3" y="3" width="18" height="18" rx="4" />
-      <path d="M8 8h8" />
-      <path d="m8 16 8-8" />
-      <path d="M8 16h8" />
+      <rect x="2" y="2" width="20" height="20" rx="4" />
+      <text
+        x="12"
+        y="16.5"
+        textAnchor="middle"
+        fontSize="14"
+        fontWeight="bold"
+        fill="currentColor"
+        stroke="none"
+        fontFamily="system-ui, sans-serif"
+      >
+        G
+      </text>
     </svg>
   );
 }
@@ -228,12 +233,12 @@ export function Header(): React.JSX.Element {
           <Link
             href="/overview"
             className={styles.brandLink}
-            aria-label="ZKDEX — Overview"
+            aria-label="GANC — Overview"
           >
             <span className={styles.brandLogo}>
               <BrandLogo />
             </span>
-            <span className={styles.brandText}>ZKDEX</span>
+            <span className={styles.brandText}>GANC</span>
           </Link>
         </div>
 
@@ -242,10 +247,10 @@ export function Header(): React.JSX.Element {
           <Nav />
         </div>
 
-        {/* Right region — mode → state-root → theme toggle (Req 3.6). */}
+        {/* Right region — mode → wallet → theme toggle (Req 3.6). */}
         <div className="flex items-center gap-2">
           <ModeBadge state={state} loading={loading} />
-          <StateRootBadge state={state} loading={loading} />
+          <WalletButton />
           <ThemeToggleButton />
         </div>
       </div>

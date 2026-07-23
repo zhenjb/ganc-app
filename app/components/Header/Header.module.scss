@@ -193,3 +193,34 @@
 .themeBadge {
   @include m.sr-only;
 }
+
+// -----------------------------------------------------------------------------
+// Wallet button (replaces StateRootBadge)
+// -----------------------------------------------------------------------------
+
+.badgeWallet {
+  cursor: pointer;
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  &:hover {
+    background-color: var(--hover-tint, rgba(0, 0, 0, 0.04));
+  }
+}
+
+.badgeConnect {
+  cursor: pointer;
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #1e40af; // blue-800
+  border-color: rgba(59, 130, 246, 0.4);
+  font-weight: 600;
+
+  &:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+
+  &:focus-visible {
+    @include m.focus-ring;
+  }
+}

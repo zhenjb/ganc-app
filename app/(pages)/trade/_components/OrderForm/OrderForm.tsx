@@ -187,11 +187,13 @@ export function OrderForm({
         type="button"
         className={`${styles.placeBtn} ${side === "buy" ? styles.placeBtnBuy : styles.placeBtnSell}`}
         onClick={submit}
-        disabled={submitting || !market}
+        disabled={submitting || !market || !owner}
       >
         {submitting
           ? "Placing…"
-          : `Place ${side === "buy" ? "Buy" : "Sell"} Order`}
+          : !owner
+            ? "Connect Wallet"
+            : `Place ${side === "buy" ? "Buy" : "Sell"} Order`}
       </button>
     </div>
   );

@@ -20,6 +20,7 @@
 
 import { useEffect, useState } from "react";
 import type { AppState } from "@/app/lib/interfaces/state";
+import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { useDepositForm } from "@/app/(pages)/wallet/_lib/useDepositForm";
 import { useDepositHistory } from "@/app/(pages)/wallet/_lib/useDepositHistory";
 import { useWithdrawForm } from "@/app/(pages)/wallet/_lib/useWithdrawForm";
@@ -50,6 +51,8 @@ export function DepositScreen({
   refresh: _refresh,
   inFlight: _inFlight,
 }: DepositScreenProps): React.JSX.Element {
+  const { address } = useWalletContext();
+  const noWallet = !address;
   const [activeTab, setActiveTab] = useState<TabId>("deposit");
 
   // --- Deposit form hook ---
@@ -133,7 +136,7 @@ export function DepositScreen({
                 errors={errors}
                 warnings={warnings}
                 submitting={submitting}
-                disabled={false}
+                disabled={noWallet}
                 onFieldChange={setField}
                 onSubmit={handleSubmit}
                 submitError={submitError}
@@ -146,7 +149,7 @@ export function DepositScreen({
                 errors={wdErrors}
                 warnings={wdWarnings}
                 submitting={wdSubmitting}
-                disabled={false}
+                disabled={noWallet}
                 onFieldChange={wdSetField}
                 onSubmit={wdHandleSubmit}
                 submitError={wdSubmitError}

@@ -23,14 +23,17 @@
 import type { ReactNode } from "react";
 
 import AppShell from "@/app/components/AppShell/AppShell";
+import { WalletProvider } from "@/app/lib/contexts/WalletContext";
 import { AppStateProvider } from "@/app/lib/contexts/AppStateContext";
 
 export default function PagesLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <AppStateProvider>
-      <AppShell>{children}</AppShell>
-    </AppStateProvider>
+    <WalletProvider>
+      <AppStateProvider>
+        <AppShell>{children}</AppShell>
+      </AppStateProvider>
+    </WalletProvider>
   );
 }
