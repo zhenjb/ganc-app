@@ -16,6 +16,8 @@ import type {
   WithdrawRequestResponse,
   WithdrawClaimInput,
   WithdrawClaimResponse,
+  WithdrawListResponse,
+  WithdrawRecord,
 } from "@/app/lib/interfaces/withdraw";
 
 export interface CallOptions {
@@ -154,6 +156,41 @@ export async function getWithdrawSettlementStatus(
   } catch {
     return "unknown";
   }
+}
+
+/**
+ * GET /api/withdraw-requests — the user's pending/submitted withdraw requests
+ * (persisted server-side). Response key: `withdrawRequests`.
+ */
+export async function getWithdrawRequests(
+  opts?: CallOptions
+): Promise<{ requests: WithdrawRecord[] }> {
+  const raw = await request<Record<string, unknown>>("/api/withdraw-requests", {
+    method: "GET",
+    ...opts,
+  });
+  const list = Array.isArray(raw.withdrawRequests) ? raw.withdrawRequests : [];
+  return { requests: list.map(normalizeWithdraw) };
+}
+
+/**
+ * GET /api/withdraws — settled-withdrawal history (analog of GET /api/deposits).
+ * The real backend keys the array `withdrawRecords`; the mock keys it
+ * `withdraws`. Read whichever is present so both shapes work.
+ */
+export async function getWithdraws(
+  opts?: CallOptions
+): Promise<WithdrawListResponse> {
+  const raw = await request<Record<string, unknown>>("/api/withdraws", {
+    method: "GET",
+    ...opts,
+  });
+  const list = Array.isArray(raw.withdrawRecords)
+    ? raw.withdrawRecords
+    : Array.isArray(raw.withdraws)
+      ? raw.withdraws
+      : [];
+  return { withdraws: list.map(normalizeWithdraw) };
 }
 
 export async function postWithdrawClaim(

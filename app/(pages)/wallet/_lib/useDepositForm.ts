@@ -204,14 +204,12 @@ export function useDepositForm(): UseDepositFormReturn {
         setFormState((prev) => ({ ...prev, depositor: connection.address }));
         setErrors((prev) => ({ ...prev, depositor: null }));
         depositorAddress = connection.address;
-      } catch {
-        setWallet({
-          connection: null,
-          connecting: false,
-          error: "Internal Server Error",
-        });
+      } catch (e) {
+        const msg =
+          e instanceof Error && e.message ? e.message : "Wallet connection failed";
+        setWallet({ connection: null, connecting: false, error: msg });
         setSubmitting(false);
-        setSubmitError("Internal Server Error");
+        setSubmitError(msg);
         return;
       }
     }
@@ -290,8 +288,10 @@ export function useDepositForm(): UseDepositFormReturn {
         { deposit, timestamp: new Date().toISOString() },
         ...prev,
       ]);
-    } catch {
-      setSubmitError("Internal Server Error");
+    } catch (e) {
+      setSubmitError(
+        e instanceof Error && e.message ? e.message : "Deposit failed"
+      );
       setBalanceSnapshot(null);
     } finally {
       setSubmitting(false);

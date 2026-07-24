@@ -57,21 +57,25 @@ export async function request<T>(
   }
   clearTimeout(timeoutHandle);
 
-  // 4. Status check.
+  // 4. Status check. Surface the backend's error message ({ error: "..." })
+  // and its real status instead of a generic 500 — callers show it to the user.
   if (!response.ok) {
-    let body: unknown = undefined;
+    let serverMessage: string | undefined;
     try {
-      body = await response.clone().json();
+      const body = (await response.clone().json()) as { error?: unknown };
+      if (typeof body?.error === "string" && body.error.trim() !== "") {
+        serverMessage = body.error.trim();
+      }
     } catch {
-      /* swallow */
+      /* body was not JSON */
     }
-    console.error("[FE-02] HTTP error", {
-      method,
-      url,
-      status: response.status,
-      body,
-    });
-    throw new ApiError("Internal Server Error", 500);
+    // Only log genuinely unexpected failures (no server-provided reason). A
+    // well-formed 4xx like "insufficient off-chain balance" is an expected user
+    // error the UI surfaces — logging it would spam and trigger the dev overlay.
+    if (!serverMessage) {
+      console.error("[FE-02] HTTP error", { method, url, status: response.status });
+    }
+    throw new ApiError(serverMessage ?? "Internal Server Error", response.status);
   }
 
   // 5. Parse JSON.
@@ -101,6 +105,14 @@ function composeSignals(
 
 function throwNormalized(err: unknown, method: string, url: string): never {
   const isAbort = err instanceof DOMException && err.name === "AbortError";
-  console.error("[FE-02] fetch failure", { method, url, err });
+  // Benign aborts (React StrictMode double-mount, a newer refresh superseding an
+  // in-flight one, or component unmount) reject the fetch with AbortError. These
+  // are NOT failures — the superseding/surviving request still resolves. Logging
+  // them is misleading, and Next.js dev surfaces every console.error as a red
+  // "Console Error" overlay, so a harmless abort looks fatal. Log real failures
+  // only; callers already drop aborted results via ApiError.aborted.
+  if (!isAbort) {
+    console.error("[FE-02] fetch failure", { method, url, err });
+  }
   throw new ApiError("Internal Server Error", 500, isAbort);
 }

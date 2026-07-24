@@ -18,12 +18,13 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AppState } from "@/app/lib/interfaces/state";
 import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { useDepositForm } from "@/app/(pages)/wallet/_lib/useDepositForm";
 import { useDepositHistory } from "@/app/(pages)/wallet/_lib/useDepositHistory";
 import { useWithdrawForm } from "@/app/(pages)/wallet/_lib/useWithdrawForm";
+import { useWithdrawHistory } from "@/app/(pages)/wallet/_lib/useWithdrawHistory";
 import { UserBalanceCard } from "@/app/(pages)/wallet/_components/UserBalanceCard/UserBalanceCard";
 import { ModuleBalanceCard } from "@/app/(pages)/wallet/_components/ModuleBalanceCard/ModuleBalanceCard";
 import { FormTabs, type TabId } from "@/app/(pages)/wallet/_components/FormTabs/FormTabs";
@@ -70,17 +71,49 @@ export function DepositScreen({
     handleSubmit,
   } = useDepositForm();
 
-  // --- Withdraw form hook ---
+  // --- Withdraw form hook (request + resumable claim) ---
   const {
     formState: wdFormState,
     errors: wdErrors,
     warnings: wdWarnings,
     submitting: wdSubmitting,
     submitError: wdSubmitError,
-    history: wdHistory,
+    lastResult: wdLastResult,
+    history: wdSessionHistory,
     setField: wdSetField,
     handleSubmit: wdHandleSubmit,
+    claim: wdClaim,
+    claimingId: wdClaimingId,
+    claimError: wdClaimError,
   } = useWithdrawForm();
+
+  // Persisted withdraw history (survives refresh / tab switch), scoped to the
+  // connected wallet. Merged with this session's just-submitted requests.
+  const wdRemote = useWithdrawHistory(address);
+  const wdMergedHistory = (() => {
+    const byId = new Map<string, (typeof wdSessionHistory)[number]>();
+    for (const r of wdRemote.remoteEntries) byId.set(r.id, r);
+    for (const r of wdSessionHistory) byId.set(r.id, r); // session wins (latest local status)
+    return [...byId.values()].sort((a, b) =>
+      (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
+    );
+  })();
+
+  // Re-fetch persisted withdraw history after a new request settles into it.
+  useEffect(() => {
+    if (wdLastResult) {
+      wdRemote.refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wdLastResult]);
+
+  const handleWithdrawClaim = useCallback(
+    async (record: (typeof wdSessionHistory)[number]) => {
+      const ok = await wdClaim(record);
+      if (ok) await wdRemote.refetch();
+    },
+    [wdClaim, wdRemote]
+  );
 
   const { remoteEntries, loading: historyLoading, refetch: refetchHistory } = useDepositHistory();
 
@@ -113,16 +146,10 @@ export function DepositScreen({
 
   return (
     <div className={styles.screen}>
-      {/* 1. Explanation banner — always visible */}
-      <p className={styles.banner} role="note">
-        Deposit only locks funds into the module account. The on-chain
-        currentStateRoot does not change until a proof is submitted and accepted.
-      </p>
-
-      {/* 2. Three-column layout: User Balance | Module Balance | Form */}
+      {/* Three-column layout: User Balance | Module Balance | Form */}
       <div className={styles.columns}>
         <div className={styles.column}>
-          <UserBalanceCard userBalances={state.userBalances} />
+          <UserBalanceCard userBalances={state.userBalances} owner={address} />
         </div>
         <div className={styles.column}>
           <ModuleBalanceCard moduleBalances={state.moduleAccountBalance} />
@@ -185,7 +212,35 @@ export function DepositScreen({
       )}
 
       {activeTab === "withdraw" && (
-        <WithdrawRequestHistory entries={wdHistory} />
+        <>
+          <p
+            role="note"
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-muted, #667085)",
+              margin: "4px 2px 10px",
+              lineHeight: 1.5,
+            }}
+          >
+            Withdrawing debits your balance immediately and <b>auto-claims</b>{" "}
+            once the withdrawal settles. If you cancel the signing popup (or it
+            hasn&apos;t settled yet), the funds are <b>held, not lost</b> — finish
+            it anytime with the <b>Claim</b> button below.
+          </p>
+          {wdClaimError && (
+            <p
+              role="alert"
+              style={{ fontSize: "0.8125rem", color: "#b42318", margin: "0 2px 10px" }}
+            >
+              {wdClaimError}
+            </p>
+          )}
+          <WithdrawRequestHistory
+            entries={wdMergedHistory}
+            onClaim={handleWithdrawClaim}
+            claimingId={wdClaimingId}
+          />
+        </>
       )}
     </div>
   );

@@ -7,25 +7,35 @@ import styles from "./UserBalanceCard.module.scss";
 export interface UserBalanceCardProps {
   /** Record<"address/denom", amount> from AppState.userBalances */
   userBalances: Record<string, string>;
+  /**
+   * Connected wallet address. "User Balance" shows ONLY this owner's balances;
+   * without it the card would sum every account and mirror "Module Balance".
+   */
+  owner?: string | null;
 }
 
-function parseDenom(key: string): string | null {
+function parseKey(key: string): { address: string; denom: string } | null {
   const slashIdx = key.lastIndexOf("/");
   if (slashIdx <= 0) return null;
-  return key.slice(slashIdx + 1);
+  return { address: key.slice(0, slashIdx), denom: key.slice(slashIdx + 1) };
 }
 
-export function UserBalanceCard({ userBalances }: UserBalanceCardProps) {
+export function UserBalanceCard({ userBalances, owner }: UserBalanceCardProps) {
   const [search, setSearch] = useState("");
   const [hideZero, setHideZero] = useState(false);
 
+  // Keep ONLY the connected owner's balances. userBalances is a global map keyed
+  // "{address}/{denom}" spanning every account; without this filter the card
+  // renders everyone and becomes identical to Module Balance (the total).
   const entries = useMemo(() => {
-    return Object.entries(userBalances).map(([key, amount]) => ({
-      key,
-      denom: parseDenom(key) ?? key,
-      amount,
-    }));
-  }, [userBalances]);
+    const connected = owner?.trim() ?? "";
+    if (connected === "") return [];
+    return Object.entries(userBalances).flatMap(([key, amount]) => {
+      const parsed = parseKey(key);
+      if (!parsed || parsed.address !== connected) return [];
+      return [{ key, denom: parsed.denom, amount }];
+    });
+  }, [userBalances, owner]);
 
   const filtered = useMemo(() => {
     let list = entries;
@@ -100,7 +110,9 @@ export function UserBalanceCard({ userBalances }: UserBalanceCardProps) {
       {/* List */}
       <div className={styles.list}>
         {filtered.length === 0 ? (
-          <div className={styles.emptyRow}>No user balance</div>
+          <div className={styles.emptyRow}>
+            {owner ? "No user balance" : "Connect a wallet to see your balance"}
+          </div>
         ) : (
           filtered.map((entry) => {
             const info = getDenomInfo(entry.denom);

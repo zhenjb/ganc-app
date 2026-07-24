@@ -26,15 +26,23 @@ export interface UseWithdrawFormReturn {
   formState: WithdrawRequestFormState;
   errors: WithdrawValidationErrors;
   warnings: WithdrawValidationWarnings;
-  /** True while the entire flow (request + claim) is in progress. */
+  /** True while the withdraw request + auto-claim is in progress. */
   submitting: boolean;
   /** Current phase for UI feedback. */
   phase: WithdrawPhase;
   submitError: string | null;
   lastResult: WithdrawRecord | null;
+  /** Session-scoped requests made this tab-session (merged with remote history). */
   history: WithdrawRecord[];
   setField: (field: keyof WithdrawRequestFormState, value: string) => void;
+  /** Submit the withdraw request, then auto-claim best-effort (Hybrid). */
   handleSubmit: () => Promise<void>;
+  /** Claim a settled withdrawal on-chain (module→user). Returns success. */
+  claim: (record: WithdrawRecord) => Promise<boolean>;
+  /** id of the withdrawal currently being claimed (null = none). */
+  claimingId: string | null;
+  /** Error from the last claim attempt (null = none). */
+  claimError: string | null;
 }
 
 /**
@@ -50,15 +58,17 @@ function parseDefaultDestination(
 }
 
 /**
- * Withdraw + auto-claim hook for the deposit page's Withdraw tab.
+ * Withdraw hook (Hybrid model) for the deposit page's Withdraw tab.
  *
- * Full flow on submit:
- *   1. postWithdrawRequest (off-chain request)
- *   2. Connect wallet (Keplr/Leap) → sign MsgClaimWithdraw → broadcast on-chain
- *      (real/local mode) OR postWithdrawClaim (mock mode)
+ * handleSubmit runs request + auto-claim in ONE click (like the original UX):
+ *   1. postWithdrawRequest (off-chain debit; request persisted to history)
+ *   2. claim() best-effort — waits for the sequencer to settle, then signs
+ *      MsgClaimWithdraw and broadcasts (real/local) OR postWithdrawClaim (mock).
+ *      Reject/timeout/failure is NON-FATAL: the request stays claimable and can
+ *      be finished later from the history row's Claim button (see `claim`).
  *   3. Refresh state
  *
- * The button stays in loading state for the entire duration.
+ * The button stays in loading state for the whole request + auto-claim duration.
  */
 export function useWithdrawForm(): UseWithdrawFormReturn {
   const { state, refresh } = useAppStateContext();
@@ -92,6 +102,8 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<WithdrawRecord | null>(null);
   const [history, setHistory] = useState<WithdrawRecord[]>([]);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   const getCurrentBalance = useCallback(
     (destination: string, denom: string): string => {
@@ -136,6 +148,93 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
     [formState.destination, formState.denom, formState.amount, getCurrentBalance]
   );
 
+  // Claim a withdrawal's on-chain payout (module→user). Resumable: safe to call
+  // any time after the request; it waits for the sequencer to settle the batch
+  // (claimable) before broadcasting MsgClaimWithdraw. Rejecting the wallet popup
+  // is a benign "Transaction cancelled" — the withdrawal stays claimable and can
+  // be finished later from the history row's Claim button. Owns its own errors
+  // (sets claimError, returns a boolean) — it never throws to the caller, so
+  // handleSubmit can await it best-effort.
+  const claim = useCallback(
+    async (record: WithdrawRecord): Promise<boolean> => {
+      if (!state) return false;
+      setClaimingId(record.id);
+      setClaimError(null);
+      try {
+        if (state.mode === "mock") {
+          await postWithdrawClaim({
+            nullifier: record.nullifier,
+            destination: record.destination,
+          });
+        } else {
+          const { connectWallet } = await import("@/app/lib/services/wallet");
+          const connection = await connectWallet();
+          const { getWithdrawSettlementStatus } = await import(
+            "@/app/lib/services/api"
+          );
+
+          const MAX_POLL_ATTEMPTS = 30;
+          const POLL_INTERVAL_MS = 2000;
+          let settled = false;
+          for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+            const status = await getWithdrawSettlementStatus(record.id);
+            if (status === "claimable" || status === "claimed") {
+              settled = true;
+              break;
+            }
+            await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+          }
+          if (!settled) {
+            throw new Error(
+              "Withdraw not settled on-chain yet — try Claim again in a moment"
+            );
+          }
+
+          const { broadcastClaim } = await import(
+            "@/app/lib/services/wallet/claimTx"
+          );
+          await broadcastClaim(record.id, connection.address);
+        }
+
+        // Reflect claimed status in the session copy (remote refetch confirms it).
+        setHistory((prev) =>
+          prev.map((r) =>
+            r.id === record.id
+              ? { ...r, status: "claimed", claimedAt: new Date().toISOString() }
+              : r
+          )
+        );
+        await new Promise((r) => setTimeout(r, 1500));
+        try {
+          await refresh();
+        } catch {
+          // Non-critical
+        }
+        return true;
+      } catch (err) {
+        const raw = err instanceof Error && err.message ? err.message : "";
+        setClaimError(
+          /reject|denied|cancel/i.test(raw)
+            ? "Transaction cancelled"
+            : raw || "Claim failed"
+        );
+        return false;
+      } finally {
+        setClaimingId(null);
+      }
+    },
+    [state, refresh]
+  );
+
+  // Submit the withdraw request, then AUTO-CLAIM best-effort (Hybrid model).
+  //   1. postWithdrawRequest → off-chain debit; request persisted to history.
+  //      A failure HERE is fatal (surfaced as submitError).
+  //   2. claim(record) best-effort — waits for the batch to settle, then
+  //      broadcasts the on-chain payout. Because claim() owns its errors and
+  //      never throws, a rejected popup / timeout / failure is NON-FATAL: the
+  //      request stays claimable in history and can be finished later via the
+  //      Claim button. This restores the original one-click UX while keeping a
+  //      cancelled claim recoverable instead of stranding the withdrawal.
   const handleSubmit = useCallback(async () => {
     if (!state) return;
 
@@ -143,9 +242,6 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
     setSubmitError(null);
     setPhase("requesting");
 
-    let record: WithdrawRecord;
-
-    // Step 1: Submit withdraw request (off-chain)
     try {
       const response = await postWithdrawRequest({
         destination: formState.destination,
@@ -153,99 +249,41 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
         amount: formState.amount,
         denom: formState.denom,
       });
-      record = response.request;
-    } catch {
-      setSubmitError("Internal Server Error");
-      setPhase("error");
-      setSubmitting(false);
-      return;
-    }
+      const record = response.request;
+      setLastResult(record);
+      setHistory((prev) => [record, ...prev]);
 
-    // Step 2: Auto-claim
-    setPhase("claiming");
-
-    try {
-      if (state.mode === "mock") {
-        // Mock mode: use the REST API claim endpoint
-        await postWithdrawClaim({
-          nullifier: record.nullifier,
-          destination: record.destination,
-        });
-      } else {
-        // Real/local mode: connect wallet → wait for settlement → sign MsgClaimWithdraw → broadcast
-        const { connectWallet } = await import("@/app/lib/services/wallet");
-        const connection = await connectWallet();
-
-        // Wait for the withdraw record to be settled on-chain before claiming.
-        // The sequencer needs time to include it in a batch and settle.
-        const { getWithdrawSettlementStatus } = await import(
-          "@/app/lib/services/api"
-        );
-
-        const MAX_POLL_ATTEMPTS = 30;
-        const POLL_INTERVAL_MS = 2000;
-        let settled = false;
-
-        for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
-          const status = await getWithdrawSettlementStatus(record.id);
-          if (status === "claimable") {
-            settled = true;
-            break;
-          }
-          if (status === "claimed") {
-            // Already claimed somehow — treat as success
-            settled = true;
-            break;
-          }
-          // Wait before next poll
-          await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-        }
-
-        if (!settled) {
-          throw new Error("Withdraw not settled on-chain within timeout");
-        }
-
-        // Dynamic import of broadcastClaim from the wallet services
-        const { broadcastClaim } = await import(
-          "@/app/lib/services/wallet/claimTx"
-        );
-        await broadcastClaim(record.id, connection.address);
-      }
-
-      // Claim succeeded: update record to "claimed"
-      const claimedRecord: WithdrawRecord = {
-        ...record,
-        status: "claimed",
-        claimedAt: new Date().toISOString(),
-      };
-      setLastResult(claimedRecord);
-      setHistory((prev) => [claimedRecord, ...prev]);
-      setPhase("done");
-
-      // Refresh state to reflect updated balances.
-      // Small delay so the backend has time to process the on-chain event.
-      await new Promise((r) => setTimeout(r, 1500));
+      // Reflect the off-chain debit in the balances.
+      await new Promise((r) => setTimeout(r, 800));
       try {
         await refresh();
       } catch {
         // Non-critical
       }
-    } catch (err) {
-      // Claim failed but withdraw request succeeded — still record the request
-      setLastResult(record);
-      setHistory((prev) => [record, ...prev]);
 
-      // Determine error message
-      if (err instanceof Error && err.message.toLowerCase().includes("rejected")) {
-        setSubmitError("Transaction cancelled");
-      } else {
-        setSubmitError("Internal Server Error");
-      }
+      // Auto-claim (best-effort). claim() sets claimError on its own and does
+      // not throw, so a cancelled/failed claim leaves the request claimable in
+      // history rather than surfacing as a request error.
+      setPhase("claiming");
+      await claim(record);
+      setPhase("done");
+    } catch (e) {
+      // Only the REQUEST step can reach here (claim swallows its own errors).
+      setSubmitError(
+        e instanceof Error && e.message ? e.message : "Withdraw request failed"
+      );
       setPhase("error");
     } finally {
       setSubmitting(false);
     }
-  }, [formState.destination, formState.denom, formState.amount, state, refresh]);
+  }, [
+    formState.destination,
+    formState.denom,
+    formState.amount,
+    state,
+    refresh,
+    claim,
+  ]);
 
   return {
     formState,
@@ -258,5 +296,8 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
     history,
     setField,
     handleSubmit,
+    claim,
+    claimingId,
+    claimError,
   };
 }

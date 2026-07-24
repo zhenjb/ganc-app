@@ -150,8 +150,15 @@ export function useOrderForm(
         setError(result.message);
         return false;
       }
-    } catch {
-      setError("Failed to place order. Please try again.");
+    } catch (e) {
+      // Wallet popup dismissed while signing the order (ADR-036) → cancellation,
+      // not a failure. Otherwise surface the real reason.
+      const raw = e instanceof Error && e.message ? e.message : "";
+      if (/reject|denied|cancel/i.test(raw)) {
+        setError("Transaction cancelled");
+      } else {
+        setError(raw || "Failed to place order. Please try again.");
+      }
       return false;
     } finally {
       setSubmitting(false);

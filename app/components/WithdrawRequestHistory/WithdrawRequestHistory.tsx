@@ -17,6 +17,11 @@ import styles from "./WithdrawRequestHistory.module.scss";
 
 export interface WithdrawRequestHistoryProps {
   entries: WithdrawRecord[];
+  /** When provided, an Action column with a Claim button is shown for
+   *  not-yet-claimed withdrawals. Clicking claims the on-chain payout. */
+  onClaim?: (record: WithdrawRecord) => void;
+  /** id of the withdrawal currently being claimed (disables its button). */
+  claimingId?: string | null;
 }
 
 /**
@@ -122,11 +127,55 @@ const WITHDRAW_COLUMNS: ColumnDef<WithdrawRecord>[] = [
 
 export function WithdrawRequestHistory({
   entries,
+  onClaim,
+  claimingId,
 }: WithdrawRequestHistoryProps): React.JSX.Element {
+  // Append a Claim action column only when a handler is wired. A withdrawal is
+  // claimable until it is claimed (or rejected); the button waits for on-chain
+  // settlement internally, so it is safe to show as soon as the request exists.
+  const columns: ColumnDef<WithdrawRecord>[] = onClaim
+    ? [
+        ...WITHDRAW_COLUMNS,
+        {
+          key: "action",
+          header: "Action",
+          align: "center",
+          render: (entry) => {
+            if (entry.status === "claimed") {
+              return <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>✓ claimed</span>;
+            }
+            if (entry.status === "rejected") {
+              return <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>—</span>;
+            }
+            const busy = claimingId === entry.id;
+            return (
+              <button
+                type="button"
+                onClick={() => onClaim(entry)}
+                disabled={busy || claimingId != null}
+                style={{
+                  fontSize: "0.75rem",
+                  padding: "3px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid var(--color-link, #2563eb)",
+                  background: busy ? "#e5e7eb" : "var(--color-link, #2563eb)",
+                  color: busy ? "#6b7280" : "#fff",
+                  cursor: busy || claimingId != null ? "not-allowed" : "pointer",
+                  fontWeight: 700,
+                }}
+              >
+                {busy ? "Claiming…" : "Claim"}
+              </button>
+            );
+          },
+        },
+      ]
+    : WITHDRAW_COLUMNS;
+
   return (
     <RecordTable<WithdrawRecord>
       title="Withdraw Request History"
-      columns={WITHDRAW_COLUMNS}
+      columns={columns}
       data={entries}
       rowKey={(entry) => entry.id}
       emptyMessage="No withdraw requests yet"

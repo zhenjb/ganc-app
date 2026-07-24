@@ -47,8 +47,16 @@ function pickProvider(): { name: WalletProvider; api: Keplr } {
 }
 
 function normalizeError(err: unknown, context: string): never {
+  const raw = err instanceof Error ? err.message : String(err);
+  // User dismissed the wallet popup — a normal cancellation, not a system
+  // error. Keplr/Leap phrase it as "Request rejected" / "rejected" / "denied".
+  if (/reject|denied|cancel/i.test(raw)) {
+    throw new ApiError("Transaction cancelled", 499);
+  }
+  // Genuine wallet/broadcast failure: log it (dev overlay) and surface the real
+  // reason instead of a generic 500.
   console.error(`[FE-14] wallet error: ${context}`, err);
-  throw new ApiError("Internal Server Error", 500);
+  throw new ApiError(raw.trim() !== "" ? raw : "Wallet request failed", 500);
 }
 
 /**
