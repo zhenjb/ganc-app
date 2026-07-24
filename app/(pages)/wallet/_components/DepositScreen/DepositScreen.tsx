@@ -18,7 +18,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AppState } from "@/app/lib/interfaces/state";
 import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { useDepositForm } from "@/app/(pages)/wallet/_lib/useDepositForm";
@@ -49,7 +49,7 @@ export interface DepositScreenProps {
  */
 export function DepositScreen({
   state,
-  refresh: _refresh,
+  refresh: refreshState,
   inFlight: _inFlight,
 }: DepositScreenProps): React.JSX.Element {
   const { address } = useWalletContext();
@@ -99,13 +99,18 @@ export function DepositScreen({
     );
   })();
 
-  // Re-fetch persisted withdraw history after a new request settles into it.
+  // Re-fetch persisted withdraw history and app state after a new withdraw completes.
+  // Watch `wdSubmitting` going from true→false with a `wdLastResult` present,
+  // ensuring the hook's internal refresh() and claim() have completed.
+  const prevWdSubmitting = useRef(false);
   useEffect(() => {
-    if (wdLastResult) {
+    if (prevWdSubmitting.current && !wdSubmitting && wdLastResult) {
       wdRemote.refetch();
+      refreshState();
     }
+    prevWdSubmitting.current = wdSubmitting;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wdLastResult]);
+  }, [wdSubmitting, wdLastResult]);
 
   const handleWithdrawClaim = useCallback(
     async (record: (typeof wdSessionHistory)[number]) => {
@@ -124,13 +129,18 @@ export function DepositScreen({
     return [...history, ...remoteOnly];
   })();
 
-  // Re-fetch remote deposit history after a successful deposit.
+  // Re-fetch remote deposit history and app state after a successful deposit.
+  // We watch `submitting` going from true→false with a `lastResult` present,
+  // ensuring the hook's internal refresh() has completed before we refetch.
+  const prevDepositSubmitting = useRef(false);
   useEffect(() => {
-    if (lastResult) {
+    if (prevDepositSubmitting.current && !submitting && lastResult) {
       refetchHistory();
+      refreshState();
     }
+    prevDepositSubmitting.current = submitting;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastResult]);
+  }, [submitting, lastResult]);
 
   // Compute "after" balance values from the current state (post-refresh).
   const afterBalance = lastResult

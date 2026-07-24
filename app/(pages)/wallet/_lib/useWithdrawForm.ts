@@ -251,7 +251,6 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
       });
       const record = response.request;
       setLastResult(record);
-      setHistory((prev) => [record, ...prev]);
 
       // Reflect the off-chain debit in the balances.
       await new Promise((r) => setTimeout(r, 800));

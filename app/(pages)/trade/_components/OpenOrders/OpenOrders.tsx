@@ -12,6 +12,7 @@ interface OpenOrdersProps {
   loading: boolean;
   cancelError: string | null;
   onCancel: (orderHash: string) => Promise<void>;
+  onTabChange?: () => void;
 }
 
 type ActiveTab = "open" | "history";
@@ -24,8 +25,14 @@ export function OpenOrders({
   loading,
   cancelError,
   onCancel,
+  onTabChange,
 }: OpenOrdersProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>("open");
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    onTabChange?.();
+  };
 
   // Filter open orders by current market
   const filteredOrders = useMemo(() => {
@@ -49,7 +56,7 @@ export function OpenOrders({
           role="tab"
           aria-selected={activeTab === "open"}
           className={`${styles.tab} ${activeTab === "open" ? styles.tabActive : ""}`}
-          onClick={() => setActiveTab("open")}
+          onClick={() => handleTabChange("open")}
         >
           Open orders ({filteredOrders.length})
         </button>
@@ -58,7 +65,7 @@ export function OpenOrders({
           role="tab"
           aria-selected={activeTab === "history"}
           className={`${styles.tab} ${activeTab === "history" ? styles.tabActive : ""}`}
-          onClick={() => setActiveTab("history")}
+          onClick={() => handleTabChange("history")}
         >
           Order History
         </button>

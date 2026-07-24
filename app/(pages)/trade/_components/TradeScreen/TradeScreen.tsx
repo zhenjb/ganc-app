@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import type { Market } from "@/app/lib/interfaces/trade";
+import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
 import { useMarkets } from "@/app/(pages)/trade/_lib/useMarkets";
 import { useOrderbook } from "@/app/(pages)/trade/_lib/useOrderbook";
 import { useBalances } from "@/app/(pages)/trade/_lib/useBalances";
@@ -18,6 +19,7 @@ interface TradeScreenProps {
 }
 
 export function TradeScreen({ owner }: TradeScreenProps) {
+  const { refresh: refreshState } = useAppStateContext();
   const { markets, loading: marketsLoading } = useMarkets();
 
   // Currently selected market
@@ -50,11 +52,14 @@ export function TradeScreen({ owner }: TradeScreenProps) {
     cancelError,
   } = useOpenOrders(owner, marketStr);
 
-  // After placing an order, refresh balances + orders
-  const handleOrderPlaced = useCallback(() => {
+  // After placing an order, refresh balances + orders + app state.
+  // A short delay gives the backend time to process the order before we refetch.
+  const handleOrderPlaced = useCallback(async () => {
+    await new Promise((r) => setTimeout(r, 1000));
     refetchBalances();
     refetchOrders();
-  }, [refetchBalances, refetchOrders]);
+    refreshState();
+  }, [refetchBalances, refetchOrders, refreshState]);
 
   // Market selector change handler
   const handleMarketChange = useCallback(
@@ -116,6 +121,7 @@ export function TradeScreen({ owner }: TradeScreenProps) {
           loading={ordersLoading}
           cancelError={cancelError}
           onCancel={handleCancel}
+          onTabChange={refetchOrders}
         />
       </div>
     </div>

@@ -283,11 +283,6 @@ export function useDepositForm(): UseDepositFormReturn {
       } catch {
         setRefreshError(true);
       }
-
-      setHistory((prev) => [
-        { deposit, timestamp: new Date().toISOString() },
-        ...prev,
-      ]);
     } catch (e) {
       setSubmitError(
         e instanceof Error && e.message ? e.message : "Deposit failed"

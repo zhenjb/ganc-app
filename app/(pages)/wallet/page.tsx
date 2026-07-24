@@ -10,6 +10,7 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useAppStateContext } from "@/app/lib/contexts/AppStateContext";
 import { useWalletContext } from "@/app/lib/contexts/WalletContext";
 import { DepositScreen } from "@/app/(pages)/wallet/_components/DepositScreen/DepositScreen";
@@ -37,6 +38,14 @@ const EMPTY_STATE: AppState = {
 export default function DepositPage(): React.JSX.Element {
   const { state, refresh, inFlight, loading } = useAppStateContext();
   const { address } = useWalletContext();
+
+  // Refresh state when navigating to wallet page (if owner address is available)
+  useEffect(() => {
+    if (address) {
+      refresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
 
   // Show skeleton only while actively loading (wallet connected, fetch in progress)
   if (address && loading && !state) {
