@@ -196,14 +196,24 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
           await broadcastClaim(record.id, connection.address);
         }
 
-        // Reflect claimed status in the session copy (remote refetch confirms it).
-        setHistory((prev) =>
-          prev.map((r) =>
-            r.id === record.id
-              ? { ...r, status: "claimed", claimedAt: new Date().toISOString() }
-              : r
-          )
-        );
+        // Reflect claimed status in the session copy so the row's Claim button
+        // flips to "✓ claimed" immediately, WITHOUT waiting for the backend to
+        // re-index the on-chain claim (that lags the 1.5s refresh below and
+        // would otherwise leave the button green). Session history wins over the
+        // remote list in the merge, so this override is authoritative.
+        // UPSERT (not just .map): a happy-path record is seeded by handleSubmit,
+        // but a MANUAL claim's record lives only in the REMOTE list — `prev` may
+        // not contain it, so a plain .map() would silently drop the update.
+        setHistory((prev) => {
+          const claimed: WithdrawRecord = {
+            ...record,
+            status: "claimed",
+            claimedAt: new Date().toISOString(),
+          };
+          return prev.some((r) => r.id === record.id)
+            ? prev.map((r) => (r.id === record.id ? claimed : r))
+            : [claimed, ...prev];
+        });
         await new Promise((r) => setTimeout(r, 1500));
         try {
           await refresh();
@@ -251,6 +261,11 @@ export function useWithdrawForm(): UseWithdrawFormReturn {
       });
       const record = response.request;
       setLastResult(record);
+      // Seed the session history so (a) the new request row shows immediately
+      // and (b) the auto-claim's "claimed" override below has a row to update —
+      // and, because session history wins over the remote list in the merge,
+      // that override hides the Claim button without waiting for BE re-indexing.
+      setHistory((prev) => [record, ...prev.filter((r) => r.id !== record.id)]);
 
       // Reflect the off-chain debit in the balances.
       await new Promise((r) => setTimeout(r, 800));

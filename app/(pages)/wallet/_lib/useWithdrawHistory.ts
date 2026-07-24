@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getWithdrawRequests, getWithdraws } from "@/app/lib/services/api";
+import {
+  getWithdrawRequests,
+  getWithdraws,
+  getWithdrawSettlementStatus,
+} from "@/app/lib/services/api";
 import type { WithdrawRecord } from "@/app/lib/interfaces/withdraw";
 
 export interface UseWithdrawHistoryReturn {
@@ -63,7 +67,25 @@ export function useWithdrawHistory(
         .filter((r) => connected === "" || r.destination === connected)
         .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
 
-      setRemoteEntries(merged);
+      // Reconcile claimed status against the CHAIN. In non-mock modes the FE
+      // claims by broadcasting MsgClaimWithdraw directly from the user's wallet
+      // (see claimTx.broadcastClaim) — the off-chain store never learns about it,
+      // so GET /api/withdraws keeps reporting claimed=false and the Claim button
+      // wrongly re-appears after a page refresh (session override is gone). The
+      // chain-records probe is the FE's settlement source of truth (the same one
+      // the claim gate polls), so use it to upgrade stale rows to "claimed".
+      // Only probe rows that still look claimable, and ONLY EVER upgrade (never
+      // downgrade) — this leaves mock mode, where the store is authoritative,
+      // untouched (its chain probe returns claimed=false, so no override fires).
+      const reconciled = await Promise.all(
+        merged.map(async (r) => {
+          if (r.status === "claimed" || r.status === "rejected") return r;
+          const chain = await getWithdrawSettlementStatus(r.id);
+          return chain === "claimed" ? { ...r, status: "claimed" as const } : r;
+        })
+      );
+
+      setRemoteEntries(reconciled);
     } catch {
       setFetchError(true);
     } finally {
